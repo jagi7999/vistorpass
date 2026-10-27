@@ -1,0 +1,3434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Gate Register · BDA Nethravathi</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#203f36">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gate Register">
+<style>
+  :root{
+    --ink:#1a2420;
+    --paper:#f2f0e9;
+    --line:#d8d3c5;
+    --gate-green:#2f5d4f;
+    --gate-green-dark:#203f36;
+    --amber:#c8862c;
+    --red:#b3402f;
+    --panel:#f2f0e9;
+    --muted:#6f6b5e;
+    --radius:18px;
+    --neu-light:#ffffff;
+    --neu-dark:#c9c4b3;
+    --neu-raised: 6px 6px 12px var(--neu-dark), -6px -6px 12px var(--neu-light);
+    --neu-raised-sm: 3px 3px 7px var(--neu-dark), -3px -3px 7px var(--neu-light);
+    --neu-inset: inset 3px 3px 7px var(--neu-dark), inset -3px -3px 7px var(--neu-light);
+  }
+  html.theme-security{
+    --gate-green:#2f5d4f;
+    --gate-green-dark:#203f36;
+  }
+  html.theme-member{
+    --gate-green:#b1712c;
+    --gate-green-dark:#7a4a17;
+  }
+  html.theme-admin{
+    --gate-green:#4a3f7a;
+    --gate-green-dark:#2c2450;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    padding-bottom:70px;
+  }
+  header{
+    background:var(--gate-green-dark);
+    color:#f2efe4;
+    padding:16px 18px 14px;
+    transition:background .25s ease;
+    position:relative;
+  }
+  .live-clock{
+    position:absolute;
+    top:16px;
+    right:18px;
+    text-align:right;
+    font-size:.72rem;
+    line-height:1.3;
+    color:#d7ded8;
+  }
+  .live-clock .lc-time{
+    font-size:.9rem;
+    font-weight:700;
+    color:#f2efe4;
+    font-variant-numeric:tabular-nums;
+  }
+  header h1{
+    margin:0;
+    font-size:1.15rem;
+    letter-spacing:.2px;
+    font-weight:600;
+    max-width:calc(100% - 100px);
+  }
+  header p{
+    margin:2px 0 0;
+    font-size:.78rem;
+    color:#c7cfc3;
+    max-width:calc(100% - 100px);
+  }
+  .role-bar{
+    display:flex;
+    gap:6px;
+    margin-top:12px;
+    flex-wrap:wrap;
+  }
+  .role-btn{
+    flex:1;
+    min-width:80px;
+    padding:9px 6px;
+    border-radius:12px;
+    border:none;
+    background:var(--gate-green-dark);
+    box-shadow:3px 3px 6px rgba(0,0,0,.35), -3px -3px 6px rgba(255,255,255,.06);
+    color:#eee;
+    font-size:.78rem;
+    text-align:center;
+    cursor:pointer;
+    transition:box-shadow .12s ease;
+  }
+  .role-btn.active{
+    background:var(--gate-green-dark);
+    box-shadow:inset 3px 3px 6px rgba(0,0,0,.4), inset -3px -3px 6px rgba(255,255,255,.05);
+    color:#f2efe4;
+    font-weight:600;
+  }
+  #stickyTop{
+    position:sticky;
+    top:0;
+    z-index:20;
+  }
+  nav.tabs{
+    display:flex;
+    overflow-x:auto;
+    background:var(--panel);
+    border-bottom:none;
+    box-shadow:0 4px 10px rgba(0,0,0,.06);
+    z-index:19;
+  }
+  nav.tabs button{
+    flex:1;
+    white-space:nowrap;
+    padding:12px 10px;
+    border:none;
+    background:none;
+    font-size:.82rem;
+    color:var(--muted);
+    border-bottom:3px solid transparent;
+    cursor:pointer;
+  }
+  nav.tabs button.active{
+    color:var(--gate-green-dark);
+    border-bottom-color:var(--gate-green);
+    font-weight:600;
+  }
+  main{padding:14px;max-width:640px;margin:0 auto;}
+  .card{
+    background:var(--panel);
+    border:none;
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:16px;
+    box-shadow:var(--neu-raised);
+  }
+  .field{margin-bottom:12px;}
+  .field label{
+    display:block;
+    font-size:.75rem;
+    color:var(--muted);
+    margin-bottom:4px;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    padding:11px;
+    border:none;
+    border-radius:12px;
+    font-size:.95rem;
+    background:var(--panel);
+    box-shadow:var(--neu-inset);
+    color:var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:2px solid var(--gate-green);
+    outline-offset:1px;
+  }
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .type-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-top:4px;
+  }
+  .type-chip{
+    border:none;
+    border-radius:14px;
+    padding:12px 4px;
+    text-align:center;
+    font-size:.72rem;
+    font-weight:600;
+    cursor:pointer;
+    background:var(--panel);
+    box-shadow:var(--neu-raised-sm);
+    color:#333;
+    line-height:1.3;
+    transition:box-shadow .12s ease;
+  }
+  .type-chip .ic{display:block;font-size:1.3rem;margin-bottom:3px;}
+  .type-chip.selected{
+    box-shadow:var(--neu-inset), 0 0 0 2px var(--gate-green);
+    background:#eaf3ee;
+    color:var(--gate-green-dark);
+    font-weight:700;
+  }
+  .type-chip.selected .ic::after{
+    content:"✓";
+    display:inline-block;
+    background:var(--gate-green);
+    color:#fff;
+    font-size:.6rem;
+    font-weight:900;
+    width:15px;height:15px;
+    border-radius:50%;
+    line-height:15px;
+    margin-left:4px;
+    vertical-align:top;
+  }
+  .revisit-box{
+    background:var(--panel);
+    border:none;
+    border-radius:14px;
+    padding:12px 14px;
+    margin-bottom:12px;
+    font-size:.82rem;
+    box-shadow:var(--neu-raised-sm);
+  }
+  .revisit-box .rv-title{font-weight:700;color:var(--gate-green-dark);margin-bottom:4px;}
+  .revisit-box button{
+    margin-top:8px;
+    padding:7px 14px;
+    border:none;
+    border-radius:20px;
+    background:var(--gate-green);
+    color:#fff;
+    font-size:.78rem;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .pagination-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 4px;
+    font-size:.8rem;
+  }
+  .pg-btn{
+    padding:7px 14px;
+    border:none;
+    border-radius:20px;
+    background:var(--panel);
+    color:var(--gate-green-dark);
+    font-weight:600;
+    font-size:.78rem;
+    cursor:pointer;
+    box-shadow:var(--neu-raised-sm);
+  }
+  .pg-btn:disabled{opacity:.4;cursor:default;box-shadow:none;}
+  .pg-label{color:var(--muted);}
+  .btn{
+    display:inline-block;
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:14px;
+    font-size:.95rem;
+    font-weight:600;
+    cursor:pointer;
+    text-align:center;
+    box-shadow:3px 3px 7px rgba(0,0,0,.18), -2px -2px 6px rgba(255,255,255,.25);
+    transition:box-shadow .1s ease, transform .1s ease;
+  }
+  .btn:active{
+    box-shadow:inset 2px 2px 5px rgba(0,0,0,.25), inset -2px -2px 5px rgba(255,255,255,.15);
+    transform:translateY(1px);
+  }
+  .btn-primary{background:var(--gate-green);color:#fff;}
+  .btn-primary:disabled{background:#a9bdb4;cursor:not-allowed;box-shadow:none;}
+  .btn-wa{background:#1f9d55;color:#fff;margin-top:8px;}
+  .btn-approve{background:var(--gate-green);color:#fff;}
+  .btn-reject{background:var(--red);color:#fff;}
+  .btn-out{background:var(--amber);color:#fff;}
+  .btn-row{display:flex;gap:8px;margin-top:10px;}
+  .btn-row .btn{padding:9px;font-size:.85rem;}
+  .visit-card{
+    border:none;
+    border-radius:var(--radius);
+    padding:14px;
+    margin-bottom:12px;
+    background:var(--panel);
+    box-shadow:var(--neu-raised-sm);
+  }
+  .visit-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .visit-name{font-weight:700;font-size:.98rem;}
+  .visit-sub{font-size:.78rem;color:var(--muted);margin-top:2px;}
+  .badge{
+    font-size:.68rem;
+    font-weight:700;
+    padding:3px 8px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .badge-pending{background:#fbe8cf;color:#8a5a12;}
+  .badge-approved{background:#dcefe4;color:#1f6e46;}
+  .badge-rejected{background:#f6dbd6;color:#9c2f1f;}
+  .badge-checked_out{background:#e4e2da;color:#57534a;}
+  .meta-line{font-size:.75rem;color:var(--muted);margin-top:6px;}
+  .timer{
+    font-variant-numeric:tabular-nums;
+    font-weight:700;
+    color:var(--gate-green-dark);
+  }
+  .empty{
+    text-align:center;
+    color:var(--muted);
+    padding:30px 10px;
+    font-size:.88rem;
+  }
+  .filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  .filters select{flex:1;min-width:100px;padding:9px;border-radius:12px;border:none;font-size:.82rem;background:var(--panel);box-shadow:var(--neu-inset);color:var(--ink);}
+  .toast{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--ink);
+    color:#fff;
+    padding:10px 18px;
+    border-radius:20px;
+    font-size:.85rem;
+    z-index:100;
+    opacity:0;
+    transition:opacity .25s;
+    pointer-events:none;
+    max-width:90%;
+    text-align:center;
+  }
+  .toast.show{opacity:1;}
+  .visitor-popup{
+    position:fixed;
+    top:14px;
+    left:50%;
+    transform:translateX(-50%) translateY(-30px);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--panel);
+    box-shadow:0 8px 24px rgba(0,0,0,.22), var(--neu-raised-sm);
+    border-radius:16px;
+    padding:12px 16px;
+    max-width:88%;
+    z-index:200;
+    opacity:0;
+    transition:opacity .3s ease, transform .3s ease;
+    pointer-events:none;
+  }
+  .visitor-popup.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+  .vp-avatar{
+    width:42px;height:42px;border-radius:50%;
+    background:var(--gate-green);
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.3rem;flex-shrink:0;
+    box-shadow:var(--neu-raised-sm);
+  }
+  .vp-title{font-size:.72rem;font-weight:700;color:var(--gate-green-dark);text-transform:uppercase;letter-spacing:.4px;}
+  .vp-sub{font-size:.85rem;color:var(--ink);font-weight:600;margin-top:1px;}
+  .section-title{
+    font-size:.75rem;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    color:var(--muted);
+    margin:14px 0 8px;
+  }
+  .member-select-wrap{background:#fff8e6;border:1px solid #eadfae;border-radius:8px;padding:10px;margin-bottom:12px;font-size:.8rem;color:#6b5a1e;}
+  footer.legend{font-size:.7rem;color:var(--muted);text-align:center;padding:16px 0;}
+  .avatar{
+    width:52px;height:52px;border-radius:50%;
+    object-fit:cover;border:none;
+    background:#e4e2da;flex-shrink:0;
+    box-shadow:var(--neu-raised-sm);
+  }
+  .avatar-fallback{
+    width:52px;height:52px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--gate-green);color:#fff;font-weight:700;
+    font-size:1.1rem;flex-shrink:0;border:none;
+    box-shadow:var(--neu-raised-sm);
+  }
+  .avatar-sm{width:34px;height:34px;font-size:.85rem;}
+  .avatar-wrap{position:relative;flex-shrink:0;}
+  .avatar-badge{
+    position:absolute;
+    top:-4px;right:-4px;
+    min-width:18px;height:18px;padding:0 4px;
+    border-radius:20px;
+    background:var(--red);color:#fff;
+    font-size:.62rem;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    border:2px solid var(--panel);
+  }
+  .member-row{
+    display:flex;align-items:center;gap:12px;
+    padding:10px 0;border-bottom:1px solid rgba(0,0,0,.06);
+  }
+  .member-row:last-child{border-bottom:none;}
+  .member-info{flex:1;}
+  .member-info .mname{font-weight:700;font-size:.92rem;}
+  .member-info .mmeta{font-size:.76rem;color:var(--muted);margin-top:1px;}
+  .mcall{
+    padding:6px 12px;border-radius:20px;border:none;
+    color:var(--gate-green-dark);font-size:.72rem;font-weight:600;
+    background:var(--panel);cursor:pointer;text-decoration:none;
+    box-shadow:var(--neu-raised-sm);
+  }
+  .search-row{display:flex;gap:8px;margin-bottom:12px;}
+  .search-row select{width:110px;padding:11px;border-radius:12px;border:none;background:var(--panel);box-shadow:var(--neu-inset);color:var(--ink);}
+  .search-row input{flex:1;padding:11px;border-radius:12px;border:none;background:var(--panel);box-shadow:var(--neu-inset);color:var(--ink);}
+  .photo-upload{
+    display:flex;align-items:center;gap:12px;margin-bottom:12px;
+  }
+  .photo-upload input[type=file]{flex:1;font-size:.78rem;}
+  .visit-card.overdue{
+    background:#fdf5f3;
+    box-shadow:var(--neu-raised-sm), 0 0 0 2px rgba(179,64,47,.35);
+  }
+  .wait-line{font-size:.78rem;margin-top:6px;font-weight:600;}
+  .wait-ok{color:var(--muted);font-weight:400;}
+  .wait-warn{color:var(--red);}
+  .dash-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table.dash-table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:520px;}
+  table.dash-table th{
+    text-align:left;padding:8px 6px;font-size:.7rem;text-transform:uppercase;
+    letter-spacing:.4px;color:var(--muted);border-bottom:2px solid var(--line);
+    white-space:nowrap;
+  }
+  table.dash-table td{padding:9px 6px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  table.dash-table tr:last-child td{border-bottom:none;}
+  table.dash-table .dt-badge{
+    font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:20px;
+  }
+  .notif-dot{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:18px;height:18px;padding:0 5px;border-radius:20px;
+    background:var(--red);color:#fff;font-size:.68rem;font-weight:700;
+    margin-left:6px;vertical-align:middle;
+  }
+  .role-btn{position:relative;}
+  nav.tabs button{position:relative;}
+  .visit-card.fresh{
+    box-shadow:var(--neu-raised-sm), 0 0 0 2px rgba(47,93,79,.3);
+  }
+  .new-tag{
+    display:inline-block;
+    background:var(--gate-green);
+    color:#fff;
+    font-size:.62rem;
+    font-weight:700;
+    padding:2px 6px;
+    border-radius:10px;
+    vertical-align:middle;
+    margin-left:4px;
+  }
+  .superadmin-link{
+    text-align:center;
+    font-size:.68rem;
+    color:rgba(255,255,255,.55);
+    margin-top:10px;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+  #licenseBanner{margin-top:8px;}
+  .lic-banner{
+    font-size:.72rem;
+    padding:5px 10px;
+    border-radius:6px;
+    text-align:center;
+    font-weight:600;
+  }
+  .lic-trial{background:rgba(255,255,255,.12);color:#f2efe4;}
+  .lic-warn{background:#c8862c;color:#2c2450;}
+  .lic-licensed{background:rgba(255,255,255,.12);color:#f2efe4;}
+  .lock-screen{
+    text-align:center;
+    padding:30px 12px;
+  }
+  .lock-screen .lock-ic{font-size:2.4rem;margin-bottom:8px;}
+  .key-input-group{
+    display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:16px 0;
+  }
+  .key-input-group input{
+    width:70px;text-align:center;font-size:1.1rem;letter-spacing:1px;
+    padding:10px 4px;border:none;border-radius:12px;
+    background:var(--panel);box-shadow:var(--neu-inset);color:var(--ink);
+  }
+  .sa-card{max-width:420px;margin:0 auto;}
+  .key-list-item{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:8px 0;border-bottom:1px solid var(--line);font-size:.8rem;
+  }
+  .key-list-item:last-child{border-bottom:none;}
+  .key-mono{font-family:monospace;font-weight:700;letter-spacing:.5px;}
+  .manage-layout{display:grid;grid-template-columns:68px minmax(0,1fr);gap:10px;align-items:start;}
+  .manage-rail{
+    position:sticky;
+    top:150px;
+    display:flex;flex-direction:column;gap:7px;
+    overflow-y:auto;
+    padding:4px 2px 8px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .rail-btn{
+    border:none;border-radius:12px;
+    padding:9px 3px;
+    background:var(--panel);
+    box-shadow:var(--neu-raised-sm);
+    color:var(--muted);
+    font-size:.64rem;line-height:1.2;
+    text-align:center;cursor:pointer;
+    word-break:break-word;
+  }
+  .rail-btn.active{
+    box-shadow:var(--neu-inset), 0 0 0 2px var(--gate-green);
+    color:var(--gate-green-dark);font-weight:700;
+  }
+  .rail-edge{font-weight:700;color:var(--gate-green-dark);}
+</style>
+</head>
+<body>
+
+<div id="stickyTop">
+<header>
+  <div class="live-clock" id="liveClock"></div>
+  <h1>Gate Register</h1>
+  <p>BDA Nethravathi · Vijayananda Nagar</p>
+  <div id="licenseBanner"></div>
+  <div class="role-bar" id="roleBar"></div>
+  <div id="superAdminLink" class="superadmin-link">⚙ Super Admin</div>
+</header>
+
+<nav class="tabs" id="tabBar"></nav>
+</div>
+
+<main id="app"></main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   CONFIG — fill these in before deploying
+   Recommended: create Turso DB `visitor-gate-jagsaam7`
+   and point these to it (same pattern as your other portals).
+   ============================================================ */
+const TURSO_URL   = "https://visitor-gate-pass-s-jagadish.aws-ap-south-1.turso.io/v2/pipeline";
+const TURSO_TOKEN  = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODgyNTQxMzcsImlkIjoiMDFhMDVjNDAtMmQwMS03YmJjLTg5YTAtMjI0YTlmNmUxOWM0Iiwia2lkIjoiaGhYdXRxNE1DSm4xVFBPT0Nyd2FXOEFoXy1reGFCWmtjam8yVGhLaHJ6MCIsInJpZCI6IjFiODI2YjJjLWE0OTctNDJkOS1hYWE4LTgyM2YyOWI5MzUzNyJ9.UV4UEu2g4_Zu8uQ0Hc6epwKa4oenJaTpUAZvcJgtkyfvLfM3tv97z9Hvid7lWDWCuqdZZTFY2btb-5iDKeNRDw";
+
+const BLOCKS = ["A","B","C","D","E","F","G","H"];
+const VISITOR_TYPES = [
+  {id:"swiggy",   label:"Swiggy",    ic:"🛵", color:"#fc8019"},
+  {id:"zomato",   label:"Zomato",    ic:"🍽️", color:"#cb202d"},
+  {id:"amazon",   label:"Amazon",    ic:"📦", color:"#ff9900"},
+  {id:"flipkart", label:"Flipkart",  ic:"🛍️", color:"#2874f0"},
+  {id:"myntra",   label:"Myntra",    ic:"👗", color:"#ff3f6c"},
+  {id:"meesho",   label:"Meesho",    ic:"🧵", color:"#a63aec"},
+  {id:"dominos",  label:"Domino's",  ic:"🍕", color:"#006491"},
+  {id:"pizzahut", label:"Pizza Hut", ic:"🍕", color:"#e2231a"},
+  {id:"cab",      label:"Cab/Auto",  ic:"🚕", color:"#3b3b3b"},
+  {id:"courier",  label:"Courier",   ic:"✉️", color:"#444444"},
+  {id:"guest",    label:"Guest",     ic:"🙋", color:"#2f5d4f"},
+  {id:"other",    label:"Other",     ic:"🔔", color:"#6f6b5e"}
+];
+
+/* ---------------- DB helpers (Turso HTTP pipeline API) ---------------- */
+async function tursoExec(sql, args=[]) {
+  const body = {
+    requests: [
+      { type:"execute", stmt: { sql, args: args.map(a => (a === null || a === undefined) ? { type:"null" } : { type: typeof a === "number" ? "integer" : "text", value: String(a) }) } },
+      { type:"close" }
+    ]
+  };
+  const res = await fetch(TURSO_URL, {
+    method:"POST",
+    headers:{ "Authorization":`Bearer ${TURSO_TOKEN}`, "Content-Type":"application/json" },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if(!res.ok){
+    throw new Error(`Turso HTTP ${res.status}: ${JSON.stringify(data)}`);
+  }
+  const firstResult = data.results?.[0];
+  if(firstResult?.type === "error"){
+    throw new Error(`Turso error: ${firstResult.error?.message || JSON.stringify(firstResult)}`);
+  }
+  const result = firstResult?.response?.result;
+  if(!result) return { columns: [], rows: [] };
+  const cols = result.cols.map(c=>c.name);
+  const rows = (result.rows||[]).map(r => {
+    const obj = {};
+    r.forEach((cell,i)=> obj[cols[i]] = cell.value);
+    return obj;
+  });
+  return { columns: cols, rows };
+}
+
+async function initDb(){
+  await tursoExec(`CREATE TABLE IF NOT EXISTS guest_passcodes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    block TEXT, flat_no TEXT, code TEXT,
+    guest_name TEXT, purpose TEXT, created_by TEXT,
+    created_at TEXT, expires_at TEXT,
+    status TEXT DEFAULT 'active',
+    used_at TEXT
+  )`);
+  await tursoExec(`CREATE TABLE IF NOT EXISTS visitors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    visitor_name TEXT, phone TEXT, vehicle_no TEXT, visitor_type TEXT,
+    block TEXT, flat_no TEXT, purpose TEXT,
+    status TEXT DEFAULT 'pending',
+    approved_by TEXT, created_by TEXT DEFAULT 'security',
+    entry_time TEXT, exit_time TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    visitor_photo TEXT
+  )`);
+  // safe migration for DBs created before visitor_photo existed
+  try{ await tursoExec(`ALTER TABLE visitors ADD COLUMN visitor_photo TEXT`); }catch(e){}
+
+  await tursoExec(`CREATE TABLE IF NOT EXISTS flat_members (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    block TEXT, flat_no TEXT, member_name TEXT, phone TEXT, photo_url TEXT
+  )`);
+  // safe migration for DBs created before photo_url existed
+  try{ await tursoExec(`ALTER TABLE flat_members ADD COLUMN photo_url TEXT`); }catch(e){}
+
+  await tursoExec(`CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+  )`);
+
+  await tursoExec(`CREATE TABLE IF NOT EXISTS app_license_state (
+    id INTEGER PRIMARY KEY,
+    first_run_at TEXT, trial_days INTEGER DEFAULT 7,
+    status TEXT DEFAULT 'trial',
+    activated_key TEXT, activated_at TEXT, license_expires_at TEXT
+  )`);
+  await tursoExec(`CREATE TABLE IF NOT EXISTS license_keys (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    license_key TEXT UNIQUE,
+    duration_label TEXT, duration_days INTEGER,
+    status TEXT DEFAULT 'unused',
+    issued_at TEXT, activated_at TEXT, expires_at TEXT
+  )`);
+  await tursoExec(`CREATE TABLE IF NOT EXISTS super_admin (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE, password_hash TEXT, created_at TEXT DEFAULT (datetime('now'))
+  )`);
+  await tursoExec(`CREATE TABLE IF NOT EXISTS admin_auth (
+    id INTEGER PRIMARY KEY,
+    password_hash TEXT
+  )`);
+  await tursoExec(`CREATE TABLE IF NOT EXISTS member_accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    block TEXT, flat_no TEXT, display_name TEXT,
+    username TEXT UNIQUE, password_hash TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  )`);
+}
+
+function initials(name){
+  if(!name) return "?";
+  return name.trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||"").join("");
+}
+
+function readAndResizeImage(file, maxSize=200){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const canvas = document.createElement("canvas");
+        let w = img.width, h = img.height;
+        if(w > h){ if(w > maxSize){ h = Math.round(h*maxSize/w); w = maxSize; } }
+        else { if(h > maxSize){ w = Math.round(w*maxSize/h); h = maxSize; } }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", 0.75));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ---------------- Licensing ---------------- */
+async function sha256Hex(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+function pad2(n){ return String(n).padStart(2,"0"); }
+
+function formatDateDMY(isoDate){
+  if(!isoDate || isoDate.length < 10) return isoDate || "—";
+  const [y,m,d] = isoDate.slice(0,10).split("-");
+  if(!y || !m || !d) return isoDate;
+  return `${d}-${m}-${y}`;
+}
+
+// All timestamps in this app are stored and read as LOCAL time strings
+// ("YYYY-MM-DD HH:MM:SS", no timezone). Parsing a string in this format
+// without a trailing Z/offset is treated as local time per the JS spec,
+// which keeps display times matching the security guard's actual clock.
+function nowIso(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+}
+
+function daysBetween(aIso, bIso){
+  const ms = new Date(bIso.replace(" ","T")) - new Date(aIso.replace(" ","T"));
+  return Math.floor(ms/86400000);
+}
+
+function addDaysIso(iso, days){
+  const d = new Date(iso.replace(" ","T"));
+  d.setDate(d.getDate()+days);
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+}
+
+const LICENSE_DURATIONS = {
+  "1_month":  { label:"1 Month",  days:30 },
+  "6_months": { label:"6 Months", days:182 },
+  "1_year":   { label:"1 Year",   days:365 }
+};
+
+const DEFAULT_SUPERADMIN_USER = "superadmin";
+const DEFAULT_SUPERADMIN_PASS = "ChangeMe@123"; // change this immediately after first login
+const DEFAULT_ADMIN_PASS = "Admin@123"; // change this immediately from the Admin panel
+
+async function ensureSuperAdminSeed(){
+  const { rows } = await tursoExec(`SELECT id FROM super_admin LIMIT 1`);
+  if(!rows.length){
+    const hash = await sha256Hex(DEFAULT_SUPERADMIN_PASS);
+    await tursoExec(`INSERT INTO super_admin (username, password_hash) VALUES (?,?)`, [DEFAULT_SUPERADMIN_USER, hash]);
+  }
+}
+
+async function ensureAdminAuthSeed(){
+  const { rows } = await tursoExec(`SELECT id FROM admin_auth WHERE id=1`);
+  if(!rows.length){
+    const hash = await sha256Hex(DEFAULT_ADMIN_PASS);
+    await tursoExec(`INSERT INTO admin_auth (id, password_hash) VALUES (1, ?)`, [hash]);
+  }
+}
+
+async function checkAdminPassword(password){
+  const { rows } = await tursoExec(`SELECT password_hash FROM admin_auth WHERE id=1`);
+  if(!rows.length) return false;
+  const hash = await sha256Hex(password);
+  return rows[0].password_hash === hash;
+}
+
+async function changeAdminPassword(newPassword){
+  const hash = await sha256Hex(newPassword);
+  await tursoExec(`UPDATE admin_auth SET password_hash=? WHERE id=1`, [hash]);
+}
+
+/* ---------------- Member account login (per-flat) ---------------- */
+async function createMemberAccount(block, flat, displayName, username, password){
+  const hash = await sha256Hex(password);
+  await tursoExec(
+    `INSERT INTO member_accounts (block, flat_no, display_name, username, password_hash) VALUES (?,?,?,?,?)`,
+    [block, flat, displayName, username, hash]
+  );
+}
+
+async function memberLogin(username, password){
+  const { rows } = await tursoExec(`SELECT * FROM member_accounts WHERE username=?`, [username]);
+  if(!rows.length) return null;
+  const hash = await sha256Hex(password);
+  if(rows[0].password_hash !== hash) return null;
+  return rows[0];
+}
+
+async function resetMemberPassword(id, newPassword){
+  const hash = await sha256Hex(newPassword);
+  await tursoExec(`UPDATE member_accounts SET password_hash=? WHERE id=?`, [hash, id]);
+}
+
+async function deleteMemberAccount(id){
+  await tursoExec(`DELETE FROM member_accounts WHERE id=?`, [id]);
+}
+
+async function ensureLicenseState(){
+  let { rows } = await tursoExec(`SELECT * FROM app_license_state WHERE id=1`);
+  if(!rows.length){
+    await tursoExec(`INSERT INTO app_license_state (id, first_run_at, trial_days, status) VALUES (1, ?, 7, 'trial')`, [nowIso()]);
+    rows = (await tursoExec(`SELECT * FROM app_license_state WHERE id=1`)).rows;
+  }
+  const state = rows[0];
+  let status = state.status;
+  let daysLeft = null;
+
+  if(status === "licensed" && state.license_expires_at){
+    if(daysBetween(nowIso(), state.license_expires_at) < 0){
+      status = "expired";
+      await tursoExec(`UPDATE app_license_state SET status='expired' WHERE id=1`);
+    } else {
+      daysLeft = daysBetween(nowIso(), state.license_expires_at);
+    }
+  } else if(status === "trial"){
+    const elapsed = daysBetween(state.first_run_at, nowIso());
+    daysLeft = parseInt(state.trial_days||7) - elapsed;
+    if(daysLeft <= 0){
+      status = "expired";
+      await tursoExec(`UPDATE app_license_state SET status='expired' WHERE id=1`);
+    }
+  }
+  return { status, daysLeft, licenseExpiresAt: state.license_expires_at, raw: state };
+}
+
+async function activateLicenseKey(rawKey){
+  const key = (rawKey||"").replace(/\D/g,"");
+  if(key.length !== 16) return { ok:false, msg:"Key must be exactly 16 digits" };
+  const { rows } = await tursoExec(`SELECT * FROM license_keys WHERE license_key=?`, [key]);
+  if(!rows.length) return { ok:false, msg:"Invalid key — not found" };
+  const k = rows[0];
+  if(k.status === "active") return { ok:false, msg:"This key has already been used" };
+  if(k.status === "revoked") return { ok:false, msg:"This key has been revoked" };
+  const now = nowIso();
+  const expiresAt = addDaysIso(now, parseInt(k.duration_days));
+  await tursoExec(`UPDATE license_keys SET status='active', activated_at=?, expires_at=? WHERE license_key=?`, [now, expiresAt, key]);
+  await tursoExec(`UPDATE app_license_state SET status='licensed', activated_key=?, activated_at=?, license_expires_at=? WHERE id=1`, [key, now, expiresAt]);
+  return { ok:true, expiresAt };
+}
+
+function generateRandomKey16(){
+  const arr = new Uint32Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(n => (n % 10).toString()).join("");
+}
+
+async function issueLicenseKey(durationLabel){
+  const dur = LICENSE_DURATIONS[durationLabel];
+  if(!dur) throw new Error("Unknown duration");
+  let key;
+  for(let i=0;i<6;i++){
+    key = generateRandomKey16();
+    const { rows } = await tursoExec(`SELECT id FROM license_keys WHERE license_key=?`, [key]);
+    if(!rows.length) break;
+  }
+  await tursoExec(
+    `INSERT INTO license_keys (license_key, duration_label, duration_days, status, issued_at) VALUES (?,?,?,?,?)`,
+    [key, dur.label, dur.days, "unused", nowIso()]
+  );
+  return key;
+}
+
+function formatKey(key){
+  return key.replace(/(\d{4})(?=\d)/g, "$1-");
+}
+
+async function superAdminLogin(username, password){
+  const { rows } = await tursoExec(`SELECT * FROM super_admin WHERE username=?`, [username]);
+  if(!rows.length) return false;
+  const hash = await sha256Hex(password);
+  return rows[0].password_hash === hash;
+}
+
+async function changeSuperAdminPassword(username, newPassword){
+  const hash = await sha256Hex(newPassword);
+  await tursoExec(`UPDATE super_admin SET password_hash=? WHERE username=?`, [hash, username]);
+}
+
+/* ---------------- Guest passcodes ---------------- */
+function addHoursIso(iso, hours){
+  const d = new Date(iso.replace(" ","T"));
+  d.setTime(d.getTime() + hours*3600000);
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+}
+function randomCode6(){
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  return String(arr[0] % 1000000).padStart(6,"0");
+}
+function esc(s){
+  return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function fmtDateTime(iso){
+  return iso ? `${formatDateDMY(iso)} ${iso.slice(11,16)}` : "—";
+}
+async function createGuestPasscode(block, flat, guestName, purpose, hours, createdBy){
+  const now = nowIso();
+  let code = null;
+  for(let i=0;i<10;i++){
+    const c = randomCode6();
+    const { rows } = await tursoExec(
+      `SELECT id FROM guest_passcodes WHERE code=? AND status='active' AND expires_at > ?`, [c, now]);
+    if(!rows.length){ code = c; break; }
+  }
+  if(!code) throw new Error("Could not generate a unique code — try again");
+  const expires = addHoursIso(now, hours);
+  await tursoExec(
+    `INSERT INTO guest_passcodes (block, flat_no, code, guest_name, purpose, created_by, created_at, expires_at, status)
+     VALUES (?,?,?,?,?,?,?,?,'active')`,
+    [block, flat, code, guestName, purpose, createdBy, now, expires]);
+  return { code, expires };
+}
+async function findActivePasscode(code){
+  const { rows } = await tursoExec(
+    `SELECT * FROM guest_passcodes WHERE code=? AND status='active' AND expires_at > ? ORDER BY id DESC LIMIT 1`,
+    [code, nowIso()]);
+  return rows[0] || null;
+}
+
+/* ---------------- State ---------------- */
+let role = "security"; // security | member | admin
+let memberBlock = "", memberFlat = "";
+let memberAuthenticated = false;
+let memberDisplayName = "";
+let activeTab = "gate";
+let selectedType = null;
+let capturedVisitorPhoto = null;
+let visitors = [];
+let knownPendingIds = null; // null = not yet initialized
+let refreshTimer = null;
+let appLicense = { status:"trial", daysLeft:7, licenseExpiresAt:null };
+let cameraEnabled = false;
+let passcodesEnabled = true;
+let plateScanEnabled = true;
+
+async function getSetting(key, fallback){
+  try{
+    const { rows } = await tursoExec(`SELECT value FROM app_settings WHERE key=?`, [key]);
+    if(!rows.length) return fallback;
+    return rows[0].value;
+  }catch(e){ console.error(e); return fallback; }
+}
+
+async function setSetting(key, value){
+  await tursoExec(`DELETE FROM app_settings WHERE key=?`, [key]);
+  await tursoExec(`INSERT INTO app_settings (key, value) VALUES (?,?)`, [key, value]);
+}
+let showSuperAdmin = false;
+let superAdminLoggedIn = false;
+let adminAuthenticated = false;
+
+/* ---------------- Auto-refresh guards ---------------- */
+// True when the current screen is a login / key-entry form whose inputs must
+// not be re-created by the background refresh.
+function isFormScreenActive(){
+  if(showSuperAdmin) return true;
+  if(role==="admin" && !adminAuthenticated) return true;
+  if(role==="member" && !memberAuthenticated) return true;
+  if(appLicense.status==="expired") return true; // lock screen has key inputs
+  return false;
+}
+
+// True when the user has focus in, or has typed into, any field inside #app.
+function isUserTyping(){
+  const app = document.getElementById("app");
+  if(!app) return false;
+  const a = document.activeElement;
+  if(a && app.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return true;
+  return Array.from(app.querySelectorAll("input:not([type=file]), textarea"))
+    .some(el => el.value && el.value.length > 0);
+}
+
+/* ---------------- Boot ---------------- */
+async function autoCleanOldVisitors(){
+  let days = 7;
+  try{
+    const v = parseInt(await getSetting("retention_days", "7"));
+    if(!isNaN(v)) days = v;
+  }catch(e){}
+  try{
+    if(days > 0){
+      await tursoExec(`DELETE FROM visitors WHERE created_at < ?`, [addDaysIso(nowIso(), -days)]);
+    }
+    // passcodes expired for more than 2 days are always purged
+    await tursoExec(`DELETE FROM guest_passcodes WHERE expires_at < ?`, [addDaysIso(nowIso(), -2)]);
+  }catch(e){ console.error("Auto-clean failed:", e); }
+}
+
+async function boot(){
+  try{ await initDb(); await ensureSuperAdminSeed(); await ensureAdminAuthSeed(); }catch(e){ console.error(e); }
+  try{ appLicense = await ensureLicenseState(); }catch(e){ console.error(e); }
+  try{ await autoCleanOldVisitors(); }catch(e){ console.error(e); }
+  try{ await loadFeatureSettings(); }catch(e){ console.error(e); }
+  renderRoleBar();
+  renderTabs();
+  await refreshVisitors();
+  render();
+  refreshTimer = setInterval(async ()=>{
+    await refreshVisitors();
+    try{ await loadFeatureSettings(); }catch(e){}
+    try{ appLicense = await ensureLicenseState(); }catch(e){ console.error(e); }
+    renderRoleBar();
+    renderTabs();
+    // Never rebuild the screen while a form is on display (Super Admin / Admin /
+    // Member login, license key entry, etc.) — that would wipe what is being typed.
+    if(isFormScreenActive() || isUserTyping()) return;
+    if(activeTab==="pending" || activeTab==="inside" || activeTab==="members" || appLicense.status==="expired"){
+      render();
+    }
+  }, 15000);
+}
+
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2200);
+}
+
+/* ---------------- Role bar ---------------- */
+function pendingCount(){
+  let list = visitors.filter(v=>v.status==="pending");
+  if(role==="member" && memberBlock && memberFlat){
+    list = list.filter(v=>v.block===memberBlock && v.flat_no===memberFlat);
+  }
+  return list.length;
+}
+
+function applyTheme(){
+  document.documentElement.classList.remove("theme-security","theme-member","theme-admin");
+  document.documentElement.classList.add("theme-"+role);
+}
+
+function renderRoleBar(){
+  applyTheme();
+  renderLicenseBanner();
+
+  const saLink = document.getElementById("superAdminLink");
+  saLink.onclick = ()=>{ showSuperAdmin = !showSuperAdmin; render(); };
+
+  const bar = document.getElementById("roleBar");
+  bar.innerHTML = "";
+  [["security","🛡️ Security"],["member","🏠 Member"],["admin","🗝️ Admin"]].forEach(([id,label])=>{
+    const b = document.createElement("div");
+    b.className = "role-btn" + (role===id ? " active":"");
+    b.innerHTML = label;
+    if(id==="member" && memberAuthenticated){
+      const mCount = visitors.filter(v=>v.status==="pending" && v.block===memberBlock && v.flat_no===memberFlat).length;
+      if(mCount > 0) b.innerHTML += `<span class="notif-dot">${mCount}</span>`;
+    }
+    b.onclick = ()=>{
+      if(id==="admin" && !adminAuthenticated){
+        role = id; activeTab = "adminlogin";
+        renderRoleBar(); renderTabs(); render();
+        return;
+      }
+      if(id==="member" && !memberAuthenticated){
+        role = id; activeTab = "memberlogin";
+        renderRoleBar(); renderTabs(); render();
+        return;
+      }
+      role = id; activeTab = id==="security" ? "gate" : "pending";
+      renderRoleBar(); renderTabs(); render();
+    };
+    bar.appendChild(b);
+  });
+}
+
+function renderLicenseBanner(){
+  const el = document.getElementById("licenseBanner");
+  if(!el) return;
+  if(appLicense.status === "trial"){
+    const d = appLicense.daysLeft;
+    el.innerHTML = `<div class="lic-banner ${d<=2?'lic-warn':'lic-trial'}">Free trial: ${d} day${d===1?"":"s"} left</div>`;
+  } else if(appLicense.status === "licensed"){
+    const dt = formatDateDMY(appLicense.licenseExpiresAt);
+    el.innerHTML = `<div class="lic-banner lic-licensed">Licensed · valid until ${dt}</div>`;
+  } else if(appLicense.status === "expired"){
+    el.innerHTML = `<div class="lic-banner lic-warn">License expired — enter a key to continue</div>`;
+  } else {
+    el.innerHTML = "";
+  }
+}
+
+/* ---------------- Tabs ---------------- */
+function tabsForRole(){
+  if(role==="security") return [["gate","New Entry"],["members","Members"],["pending","Pending"],["inside","Inside Now"],["history","History"]];
+  if(role==="member")   return [["dashboard","Dashboard"],["passcodes","Passcodes"],["pending","Pending"],["inside","Inside Now"],["history","History"]].filter(t=>t[0]!=="passcodes" || passcodesEnabled);
+  return [["members","Members"],["pending","Pending"],["inside","Inside Now"],["history","History"],["manage","Manage Flats"],["license","License"]];
+}
+function renderTabs(){
+  const bar = document.getElementById("tabBar");
+  if(role==="admin" && !adminAuthenticated){
+    bar.innerHTML = "";
+    return;
+  }
+  if(role==="member" && !memberAuthenticated){
+    bar.innerHTML = "";
+    return;
+  }
+  const tabs = tabsForRole();
+  if(!tabs.find(t=>t[0]===activeTab)) activeTab = tabs[0][0];
+  bar.innerHTML = "";
+  tabs.forEach(([id,label])=>{
+    const b = document.createElement("button");
+    b.className = activeTab===id ? "active":"";
+    b.innerHTML = label;
+    if(id==="pending"){
+      const c = pendingCount();
+      if(c > 0) b.innerHTML += `<span class="notif-dot">${c}</span>`;
+    }
+    b.onclick = ()=>{ activeTab=id; renderTabs(); render(); };
+    bar.appendChild(b);
+  });
+}
+
+/* ---------------- Data refresh ---------------- */
+function showVisitorPopup(v){
+  const typeInfo = VISITOR_TYPES.find(t=>t.label===v.visitor_type);
+  const ic = typeInfo ? typeInfo.ic : "🔔";
+  const pop = document.createElement("div");
+  pop.className = "visitor-popup";
+  pop.innerHTML = `
+    <div class="vp-avatar">${ic}</div>
+    <div class="vp-text">
+      <div class="vp-title">New visitor request</div>
+      <div class="vp-sub">${v.visitor_name || "Visitor"} · Block ${v.block} · Flat ${v.flat_no}</div>
+    </div>
+  `;
+  document.body.appendChild(pop);
+  requestAnimationFrame(()=> pop.classList.add("show"));
+  setTimeout(()=>{
+    pop.classList.remove("show");
+    setTimeout(()=> pop.remove(), 300);
+  }, 5000);
+}
+
+async function refreshVisitors(){
+  try{
+    const { rows } = await tursoExec(`SELECT * FROM visitors ORDER BY created_at DESC LIMIT 1000`);
+    visitors = rows;
+
+    const currentPendingIds = new Set(visitors.filter(v=>v.status==="pending").map(v=>v.id));
+    if(knownPendingIds === null){
+      // first load — don't pop for pre-existing pending items
+      knownPendingIds = currentPendingIds;
+    } else {
+      const newlyPending = visitors.filter(v=> v.status==="pending" && !knownPendingIds.has(v.id));
+      newlyPending.forEach(v=>{
+        const relevant = (role==="security" || role==="admin") ||
+          (role==="member" && v.block===memberBlock && v.flat_no===memberFlat);
+        const alreadyVisibleOnScreen = activeTab === "members";
+        if(relevant && !alreadyVisibleOnScreen) showVisitorPopup(v);
+      });
+      knownPendingIds = currentPendingIds;
+    }
+  }catch(e){ console.error(e); }
+}
+
+function minutesBetween(a,b){
+  const ms = new Date(b.replace(" ","T")) - new Date(a.replace(" ","T"));
+  return Math.max(0, Math.round(ms/60000));
+}
+
+/* ---------------- Render router ---------------- */
+function render(){
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+
+  if(showSuperAdmin){
+    app.appendChild(renderSuperAdmin());
+    return;
+  }
+  if(role==="admin" && !adminAuthenticated){
+    app.appendChild(renderAdminLogin());
+    return;
+  }
+  if(role==="member" && !memberAuthenticated){
+    app.appendChild(renderMemberLogin());
+    return;
+  }
+  if(appLicense.status === "expired"){
+    app.appendChild(renderLockScreen());
+    return;
+  }
+
+  if(activeTab==="gate") app.appendChild(renderGateForm());
+  if(activeTab==="members") app.appendChild(renderMembers());
+  if(activeTab==="dashboard") app.appendChild(renderDashboard());
+  if(activeTab==="passcodes") app.appendChild(renderPasscodes());
+  if(activeTab==="pending") app.appendChild(renderPending());
+  if(activeTab==="inside") app.appendChild(renderInside());
+  if(activeTab==="history") app.appendChild(renderHistory());
+  if(activeTab==="manage") app.appendChild(renderManage());
+  if(activeTab==="license") app.appendChild(renderLicenseTab());
+}
+
+/* ---------------- New Entry (Security) ---------------- */
+function renderGateForm(){
+  const wrap = document.createElement("div");
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="section-title">Visitor / delivery details</div>
+    <div class="field"><label>Visitor / delivery person name</label><input id="f_name" placeholder="e.g. Ramesh"></div>
+    <div class="row2">
+      <div class="field"><label>Phone (for WhatsApp alert)</label><input id="f_phone" placeholder="10-digit mobile" maxlength="10" inputmode="numeric" pattern="[0-9]*"></div>
+      <div class="field"><label>Vehicle no.</label><input id="f_vehicle" placeholder="KA-05-XX-1234" maxlength="13" autocapitalize="characters" autocomplete="off"></div>
+    </div>
+    ${plateScanEnabled ? `
+    <div class="field">
+      <label>Scan number plate (auto-fills Vehicle no.)</label>
+      <div class="btn-row" style="margin-top:0;">
+        <button type="button" class="btn btn-primary" id="plateCamBtn">Camera</button>
+        <button type="button" class="btn" id="plateUpBtn" style="background:var(--panel);color:var(--ink);box-shadow:var(--neu-raised-sm);">Upload image</button>
+      </div>
+      <input type="file" id="plateCamInput" accept="image/*" capture="environment" style="display:none;">
+      <input type="file" id="plateUpInput" accept="image/*" style="display:none;">
+      <div id="plateStatus" class="meta-line"></div>
+    </div>` : ""}
+    <div id="revisitHint"></div>
+    <div class="row2">
+      <div class="field"><label>Block</label>
+        <select id="f_block">${BLOCKS.map(b=>`<option value="${b}">Block ${b}</option>`).join("")}</select>
+      </div>
+      <div class="field"><label>Flat no.</label><input id="f_flat" placeholder="e.g. 204"></div>
+    </div>
+    <div class="field"><label>Purpose / note (optional)</label><input id="f_purpose" placeholder="e.g. Furniture delivery"></div>
+    ${cameraEnabled ? `
+    <div class="field">
+      <label>Visitor photo</label>
+      <div class="photo-upload">
+        <div class="avatar-fallback" id="visitorPhotoPreview">📷</div>
+        <input type="file" id="visitorPhotoInput" accept="image/*" capture="environment">
+      </div>
+    </div>` : ""}
+    <div class="section-title">Visitor type</div>
+    <div class="type-grid" id="typeGrid"></div>
+    <button class="btn btn-primary" style="margin-top:14px;" id="submitBtn">Submit &amp; notify flat</button>
+  `;
+  if(passcodesEnabled) wrap.appendChild(buildPasscodeVerifyCard());
+  wrap.appendChild(card);
+
+  const grid = card.querySelector("#typeGrid");
+  VISITOR_TYPES.forEach(t=>{
+    const chip = document.createElement("div");
+    chip.className = "type-chip" + (selectedType===t.id ? " selected":"");
+    chip.innerHTML = `<span class="ic">${t.ic}</span>${t.label}`;
+    chip.onclick = ()=>{
+      selectedType = t.id;
+      grid.querySelectorAll(".type-chip").forEach(c=>c.classList.remove("selected"));
+      chip.classList.add("selected");
+    };
+    grid.appendChild(chip);
+  });
+
+  card.querySelector("#submitBtn").onclick = onSubmitEntry;
+
+  const vehEl = card.querySelector("#f_vehicle");
+  vehEl.addEventListener("input", ()=>{ vehEl.value = vehEl.value.toUpperCase(); });
+  vehEl.addEventListener("blur", ()=>{ vehEl.value = formatPlateTyped(vehEl.value); });
+  setupPlateScan(card);
+
+  capturedVisitorPhoto = null;
+  const photoInput = card.querySelector("#visitorPhotoInput");
+  if(photoInput){
+    photoInput.addEventListener("change", async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      try{
+        capturedVisitorPhoto = await readAndResizeImage(file, 300);
+        const preview = card.querySelector("#visitorPhotoPreview");
+        preview.outerHTML = `<img class="avatar" id="visitorPhotoPreview" src="${capturedVisitorPhoto}">`;
+        toast("Photo captured");
+      }catch(err){ console.error(err); toast("Couldn't capture photo"); }
+    });
+  }
+
+  const phoneInput = card.querySelector("#f_phone");
+  const hintBox = card.querySelector("#revisitHint");
+  let lastLookedUp = "";
+
+  phoneInput.addEventListener("input", async ()=>{
+    phoneInput.value = phoneInput.value.replace(/\D/g,"").slice(0,10);
+    const digits = phoneInput.value;
+    if(digits.length === 10 && digits !== lastLookedUp){
+      lastLookedUp = digits;
+      try{
+        const { rows } = await tursoExec(
+          `SELECT * FROM visitors WHERE phone=? ORDER BY created_at DESC LIMIT 1`, [digits]
+        );
+        if(rows.length){
+          const prev = rows[0];
+          hintBox.innerHTML = `
+            <div class="revisit-box">
+              <div class="rv-title">Returning visitor found</div>
+              ${prev.visitor_name || "—"} · ${prev.visitor_type || "—"}${prev.vehicle_no ? " · "+prev.vehicle_no : ""}
+              <br><button id="rvAutofill">Use these details</button>
+            </div>`;
+          hintBox.querySelector("#rvAutofill").onclick = ()=>{
+            card.querySelector("#f_name").value = prev.visitor_name || "";
+            card.querySelector("#f_vehicle").value = prev.vehicle_no || "";
+            const match = VISITOR_TYPES.find(t=>t.label===prev.visitor_type);
+            if(match){
+              selectedType = match.id;
+              grid.querySelectorAll(".type-chip").forEach(c=>c.classList.remove("selected"));
+              const chipEl = Array.from(grid.children).find((c,i)=>VISITOR_TYPES[i].id===match.id);
+              if(chipEl) chipEl.classList.add("selected");
+            }
+            toast("Details filled from last visit");
+          };
+        } else {
+          hintBox.innerHTML = "";
+        }
+      }catch(e){ console.error(e); }
+    } else if(digits.length < 10){
+      hintBox.innerHTML = "";
+      lastLookedUp = "";
+    }
+  });
+
+  return wrap;
+}
+
+async function onSubmitEntry(){
+  const name = document.getElementById("f_name").value.trim();
+  const phone = document.getElementById("f_phone").value.trim();
+  const vehicle = formatPlateTyped(document.getElementById("f_vehicle").value.trim());
+  const block = document.getElementById("f_block").value;
+  const flat = document.getElementById("f_flat").value.trim();
+  const purpose = document.getElementById("f_purpose").value.trim();
+
+  if(!name){ toast("Enter visitor name"); return; }
+  if(!flat){ toast("Enter flat number"); return; }
+  if(!selectedType){ toast("Select visitor type"); return; }
+  if(phone && phone.length !== 10){ toast("Phone number must be exactly 10 digits"); return; }
+
+  const typeLabel = VISITOR_TYPES.find(t=>t.id===selectedType).label;
+  const typeIcon = VISITOR_TYPES.find(t=>t.id===selectedType).ic;
+
+  await tursoExec(
+    `INSERT INTO visitors (visitor_name, phone, vehicle_no, visitor_type, block, flat_no, purpose, status, created_by, created_at, visitor_photo)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+    [name, phone, vehicle, typeLabel, block, flat, purpose, "pending", "security", nowIso(), capturedVisitorPhoto]
+  );
+
+  // look up member phone if not entered
+  let waPhone = phone;
+  if(!waPhone){
+    const { rows } = await tursoExec(`SELECT phone FROM flat_members WHERE block=? AND flat_no=? LIMIT 1`, [block, flat]);
+    waPhone = rows[0]?.phone || "";
+  }
+
+  toast("Visitor logged — pending approval");
+  selectedType = null;
+  capturedVisitorPhoto = null;
+
+  // open WhatsApp compose to the flat member if we have a member phone on file
+  const { rows: memberRows } = await tursoExec(`SELECT phone, member_name FROM flat_members WHERE block=? AND flat_no=? LIMIT 1`, [block, flat]);
+  const member = memberRows[0];
+  if(member?.phone){
+    const lines = [
+      `*Gate Alert* - Flat ${block}-${flat}`,
+      ``,
+      `Visitor type: ${typeLabel}`,
+      `Name: ${name}`,
+    ];
+    if(vehicle) lines.push(`Vehicle: ${vehicle}`);
+    if(purpose) lines.push(`Note: ${purpose}`);
+    lines.push(``, `Block ${block} - Flat ${flat}`, ``, `Open the Gate Register app to approve or reject entry.`);
+    const msg = encodeURIComponent(lines.join("\n"));
+    window.open(`https://wa.me/91${member.phone.replace(/\D/g,"").slice(-10)}?text=${msg}`, "_blank");
+  }
+
+  await refreshVisitors();
+  activeTab = "pending";
+  renderRoleBar();
+  renderTabs();
+  render();
+}
+
+/* ---------------- Pending list ---------------- */
+function sortByNewest(list){
+  return [...list].sort((a,b) => (b.created_at||"").localeCompare(a.created_at||""));
+}
+
+function renderPending(){
+  const wrap = document.createElement("div");
+  let list = sortByNewest(visitors.filter(v=>v.status==="pending"));
+  if(role==="member"){
+    list = list.filter(v=>v.block===memberBlock && v.flat_no===memberFlat);
+  }
+  if(!list.length){
+    wrap.appendChild(emptyState("No pending approvals right now."));
+    return wrap;
+  }
+  list.forEach(v=> wrap.appendChild(visitCard(v, true)));
+  return wrap;
+}
+
+/* ---------------- Inside now ---------------- */
+function renderInside(){
+  const wrap = document.createElement("div");
+  let list = sortByNewest(visitors.filter(v=>v.status==="approved" && v.entry_time && !v.exit_time));
+  if(role==="member"){
+    list = list.filter(v=>v.block===memberBlock && v.flat_no===memberFlat);
+  }
+  if(!list.length){ wrap.appendChild(emptyState("No visitors currently inside.")); return wrap; }
+  list.forEach(v=> wrap.appendChild(visitCard(v, false, true)));
+  return wrap;
+}
+
+/* ---------------- History ---------------- */
+function localDateStr(d){
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+
+function dateRangeForPreset(preset){
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  if(preset === "today"){
+    return { from: localDateStr(today), to: localDateStr(today) };
+  }
+  if(preset === "yesterday"){
+    const y = new Date(today); y.setDate(y.getDate()-1);
+    return { from: localDateStr(y), to: localDateStr(y) };
+  }
+  if(preset === "week"){
+    const start = new Date(today); start.setDate(start.getDate() - start.getDay());
+    return { from: localDateStr(start), to: localDateStr(today) };
+  }
+  if(preset === "month"){
+    const start = new Date(today.getFullYear(), today.getMonth(), 1);
+    return { from: localDateStr(start), to: localDateStr(today) };
+  }
+  return null; // all time / custom handled separately
+}
+
+function renderHistory(){
+  const wrap = document.createElement("div");
+  let histPage = 1;
+
+  if(role==="admin" || role==="security"){
+    const searchCard = document.createElement("div");
+    searchCard.className = "card";
+    searchCard.innerHTML = `
+      <div class="section-title">Quick search</div>
+      <input id="histContactSearch" placeholder="Search by mobile, vehicle no., name, or flat (e.g. A-002)" autocomplete="off">
+    `;
+    wrap.appendChild(searchCard);
+  }
+
+  const filterBar = document.createElement("div");
+  filterBar.className = "filters";
+  filterBar.innerHTML = `
+    <select id="histBlock"><option value="">All blocks</option>${BLOCKS.map(b=>`<option value="${b}">Block ${b}</option>`).join("")}</select>
+    <select id="histStatus">
+      <option value="">All status</option>
+      <option value="checked_out">Checked out</option>
+      <option value="approved">Approved (inside)</option>
+      <option value="rejected">Rejected</option>
+      <option value="pending">Pending</option>
+    </select>
+  `;
+  wrap.appendChild(filterBar);
+
+  const dateBar = document.createElement("div");
+  dateBar.className = "filters";
+  dateBar.innerHTML = `
+    <select id="histPreset">
+      <option value="all">All time</option>
+      <option value="today">Today</option>
+      <option value="yesterday">Yesterday</option>
+      <option value="week">This week</option>
+      <option value="month">This month</option>
+      <option value="custom">Custom range</option>
+    </select>
+  `;
+  wrap.appendChild(dateBar);
+
+  const customRange = document.createElement("div");
+  customRange.className = "row2";
+  customRange.style.cssText = "display:none;margin-bottom:12px;";
+  customRange.innerHTML = `
+    <div class="field"><label>From</label><input type="date" id="histFrom"></div>
+    <div class="field"><label>To</label><input type="date" id="histTo"></div>
+  `;
+  wrap.appendChild(customRange);
+
+  const listBox = document.createElement("div");
+  wrap.appendChild(listBox);
+
+  const pagBox = document.createElement("div");
+  wrap.appendChild(pagBox);
+
+  function draw(){
+    const b = filterBar.querySelector("#histBlock").value;
+    const s = filterBar.querySelector("#histStatus").value;
+    const preset = dateBar.querySelector("#histPreset").value;
+    const contactSearchEl = wrap.querySelector("#histContactSearch");
+    const contactQ = contactSearchEl ? contactSearchEl.value.trim().toLowerCase() : "";
+
+    let range = null;
+    if(preset === "custom"){
+      const from = customRange.querySelector("#histFrom").value;
+      const to = customRange.querySelector("#histTo").value;
+      if(from || to) range = { from: from || "0000-01-01", to: to || "9999-12-31" };
+    } else if(preset !== "all"){
+      range = dateRangeForPreset(preset);
+    }
+
+    let list = sortByNewest(visitors.filter(v=>{
+      if(b && v.block!==b) return false;
+      if(s && v.status!==s) return false;
+      if(range){
+        const d = (v.created_at||"").slice(0,10);
+        if(d < range.from || d > range.to) return false;
+      }
+      if(contactQ){
+        const haystack = `${v.vehicle_no||""} ${v.phone||""} ${v.visitor_name||""} ${v.block||""}-${v.flat_no||""} ${v.block||""} ${v.flat_no||""}`.toLowerCase();
+        if(!haystack.includes(contactQ)) return false;
+      }
+      return true;
+    }));
+    if(role==="member" && memberBlock && memberFlat){
+      list = list.filter(v=>v.block===memberBlock && v.flat_no===memberFlat);
+    }
+    listBox.innerHTML = "";
+    pagBox.innerHTML = "";
+    if(!list.length){ listBox.appendChild(emptyState("No records match.")); return; }
+    const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+    if(histPage > totalPages) histPage = totalPages;
+    const pageItems = list.slice((histPage-1)*PAGE_SIZE, histPage*PAGE_SIZE);
+    pageItems.forEach(v=> listBox.appendChild(visitCard(v,false,false,true)));
+    pagBox.appendChild(buildPaginationControls(histPage, list.length, (p)=>{ histPage = p; draw(); }));
+  }
+
+  const resetAndDraw = ()=>{ histPage = 1; draw(); };
+
+  const contactSearchEl = wrap.querySelector("#histContactSearch");
+  if(contactSearchEl) contactSearchEl.oninput = resetAndDraw;
+
+  dateBar.querySelector("#histPreset").onchange = ()=>{
+    customRange.style.display = dateBar.querySelector("#histPreset").value==="custom" ? "grid" : "none";
+    resetAndDraw();
+  };
+  customRange.querySelector("#histFrom").onchange = resetAndDraw;
+  customRange.querySelector("#histTo").onchange = resetAndDraw;
+  filterBar.querySelector("#histBlock").onchange = resetAndDraw;
+  filterBar.querySelector("#histStatus").onchange = resetAndDraw;
+  draw();
+  return wrap;
+}
+
+const PAGE_SIZE = 10;
+
+function buildPaginationControls(currentPage, totalItems, onChange){
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const bar = document.createElement("div");
+  bar.className = "pagination-bar";
+  bar.innerHTML = `
+    <button class="pg-btn" id="pgPrev" ${currentPage<=1?"disabled":""}>‹ Prev</button>
+    <span class="pg-label">Page ${currentPage} of ${totalPages}</span>
+    <button class="pg-btn" id="pgNext" ${currentPage>=totalPages?"disabled":""}>Next ›</button>
+  `;
+  bar.querySelector("#pgPrev").onclick = ()=>{ if(currentPage>1) onChange(currentPage-1); };
+  bar.querySelector("#pgNext").onclick = ()=>{ if(currentPage<totalPages) onChange(currentPage+1); };
+  return bar;
+}
+
+/* ---------------- Dashboard (Member) — table view ---------------- */
+function renderDashboard(){
+  const wrap = document.createElement("div");
+  let dashPage = 1;
+
+  const headerCard = document.createElement("div");
+  headerCard.className = "card";
+  headerCard.innerHTML = `
+    <div class="section-title">Visitor dashboard</div>
+    <p style="font-size:.82rem;color:var(--muted);margin:0 0 10px;">${memberDisplayName ? "Welcome, " + memberDisplayName + " — " : ""}Showing visitors for Block ${memberBlock} · Flat ${memberFlat}</p>
+    <button class="btn" id="memberLogoutBtn" style="background:var(--panel);color:var(--red);box-shadow:var(--neu-raised-sm);">Log out</button>
+  `;
+  wrap.appendChild(headerCard);
+  headerCard.querySelector("#memberLogoutBtn").onclick = ()=>{
+    memberAuthenticated = false;
+    memberBlock = ""; memberFlat = ""; memberDisplayName = "";
+    role = "security";
+    activeTab = "gate";
+    renderRoleBar();
+    renderTabs();
+    render();
+  };
+
+  const tableCard = document.createElement("div");
+  tableCard.className = "card dash-table-wrap";
+  wrap.appendChild(tableCard);
+
+  const pagBox = document.createElement("div");
+  wrap.appendChild(pagBox);
+
+  function draw(){
+    let list = sortByNewest(visitors.filter(v => v.block===memberBlock && v.flat_no===memberFlat));
+    pagBox.innerHTML = "";
+    if(!list.length){
+      tableCard.innerHTML = "";
+      tableCard.appendChild(emptyState("No visitor records yet for your flat."));
+      return;
+    }
+    const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+    if(dashPage > totalPages) dashPage = totalPages;
+    const pageItems = list.slice((dashPage-1)*PAGE_SIZE, dashPage*PAGE_SIZE);
+
+    const rowsHtml = pageItems.map(v=>{
+      const typeInfo = VISITOR_TYPES.find(t=>t.label===v.visitor_type);
+      const ic = typeInfo ? typeInfo.ic : "🔔";
+      const dateStr = v.created_at ? formatDateDMY(v.created_at) : "—";
+      const timeIn = v.entry_time ? v.entry_time.slice(11,16) : "—";
+      const timeOut = v.exit_time ? v.exit_time.slice(11,16) : "—";
+      return `
+        <tr>
+          <td>${v.visitor_name || "—"}</td>
+          <td>${v.flat_no || "—"}</td>
+          <td>${v.block || "—"}</td>
+          <td>${ic} ${v.visitor_type || "—"}</td>
+          <td>${dateStr}</td>
+          <td>${timeIn}</td>
+          <td>${timeOut}</td>
+          <td><span class="dt-badge badge-${v.status}">${v.status.replace("_"," ")}</span></td>
+        </tr>`;
+    }).join("");
+    tableCard.innerHTML = `
+      <table class="dash-table">
+        <thead>
+          <tr><th>Visitor</th><th>Flat</th><th>Block</th><th>Type</th><th>Date</th><th>Time in</th><th>Time out</th><th>Status</th></tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    `;
+    pagBox.appendChild(buildPaginationControls(dashPage, list.length, (p)=>{ dashPage = p; draw(); }));
+  }
+  draw();
+  return wrap;
+}
+
+/* ---------------- Members search (Security / Admin) ---------------- */
+function renderMembers(){
+  const wrap = document.createElement("div");
+
+  const alertBanner = document.createElement("div");
+  wrap.appendChild(alertBanner);
+
+  const searchCard = document.createElement("div");
+  searchCard.className = "card";
+  searchCard.innerHTML = `
+    <div class="section-title">Find flat member</div>
+    <div class="field">
+      <input id="srQuick" placeholder="Search by flat no. or name (e.g. 204 or Suresh)" autocomplete="off">
+    </div>
+  `;
+  wrap.appendChild(searchCard);
+
+  const listBox = document.createElement("div");
+  listBox.className = "card";
+  listBox.innerHTML = `<div class="empty">Loading members…</div>`;
+  wrap.appendChild(listBox);
+
+  let allMembers = [];
+  let loadError = "";
+
+  function buildRow(m){
+    const row = document.createElement("div");
+    row.className = "member-row";
+    const avatarInner = m.photo_url
+      ? `<img class="avatar" src="${m.photo_url}">`
+      : `<div class="avatar-fallback">${initials(m.member_name)}</div>`;
+    const badge = m._pending > 0
+      ? `<span class="avatar-badge">${m._pending}</span>`
+      : "";
+    row.innerHTML = `
+      <div class="avatar-wrap">${avatarInner}${badge}</div>
+      <div class="member-info">
+        <div class="mname">${m.member_name || "Unnamed"}${m._pending > 0 ? ' <span class="new-tag">WAITING</span>' : ""}</div>
+        <div class="mmeta">Block ${m.block} · Flat ${m.flat_no}${m.phone ? " · "+m.phone : ""}</div>
+      </div>
+      ${m.phone ? `<a class="mcall" href="tel:${m.phone}">Call</a>` : ""}
+    `;
+    if(m._pending > 0) row.style.cssText = "background:#fdf5f3;border-radius:12px;padding:10px 8px;margin:4px -8px;";
+    return row;
+  }
+
+  function draw(){
+    if(loadError){
+      listBox.innerHTML = "";
+      const err = document.createElement("div");
+      err.className = "empty";
+      err.style.color = "var(--red)";
+      err.textContent = "Couldn't load members: " + loadError;
+      listBox.appendChild(err);
+      return;
+    }
+    const q = searchCard.querySelector("#srQuick").value.trim().toLowerCase();
+
+    // attach live pending count to every member
+    allMembers.forEach(m=>{
+      m._pending = visitors.filter(v=>
+        v.status==="pending" && v.block===m.block && v.flat_no===m.flat_no
+      ).length;
+    });
+
+    const waitingCount = allMembers.filter(m=>m._pending > 0).length;
+    alertBanner.innerHTML = waitingCount > 0
+      ? `<div class="lic-banner lic-warn" style="margin-bottom:12px;">${waitingCount} flat${waitingCount===1?"":"s"} waiting on visitor approval</div>`
+      : "";
+
+    const list = allMembers.filter(m => {
+      if(!q) return true;
+      const haystack = `${m.block||""} ${m.flat_no||""} ${m.block||""}-${m.flat_no||""} ${m.member_name||""}`.toLowerCase();
+      return haystack.includes(q);
+    });
+
+    // pending flats always bubble to the top, sorted by most waiting first
+    list.sort((a,b)=> b._pending - a._pending);
+
+    listBox.innerHTML = "";
+    if(!allMembers.length){
+      listBox.appendChild(emptyState("No members added yet. Ask Admin to add flat contacts under Manage Flats."));
+      return;
+    }
+    if(!list.length){
+      listBox.appendChild(emptyState("No match for that search."));
+      return;
+    }
+
+    const waiting = list.filter(m=>m._pending > 0);
+    const rest = list.filter(m=>m._pending === 0);
+
+    if(waiting.length){
+      const header = document.createElement("div");
+      header.className = "section-title";
+      header.style.color = "var(--red)";
+      header.textContent = "Needs approval";
+      listBox.appendChild(header);
+      waiting.forEach(m=> listBox.appendChild(buildRow(m)));
+      if(rest.length){
+        const header2 = document.createElement("div");
+        header2.className = "section-title";
+        header2.style.marginTop = "14px";
+        header2.textContent = "All flats";
+        listBox.appendChild(header2);
+      }
+    }
+    rest.forEach(m=> listBox.appendChild(buildRow(m)));
+  }
+  searchCard.querySelector("#srQuick").oninput = draw;
+
+  // fetch happens after we've already returned real DOM to render()
+  tursoExec(`SELECT * FROM flat_members ORDER BY block, flat_no`)
+    .then(({rows}) => { allMembers = rows; draw(); })
+    .catch(e => { console.error(e); loadError = e.message || String(e); draw(); });
+
+  return wrap;
+}
+
+/* ---------------- Manage flats (Admin) ---------------- */
+function renderManage(){
+  const wrap = document.createElement("div");
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="section-title">Add flat member</div>
+    <div class="row2">
+      <div class="field"><label>Block</label><select id="mgBlock">${BLOCKS.map(b=>`<option value="${b}">Block ${b}</option>`).join("")}</select></div>
+      <div class="field"><label>Flat no.</label><input id="mgFlat" placeholder="e.g. 204"></div>
+    </div>
+    <div class="field"><label>Member name</label><input id="mgName" placeholder="e.g. Suresh Kumar"></div>
+    <div class="field"><label>WhatsApp number</label><input id="mgPhone" placeholder="10-digit mobile" maxlength="10" inputmode="numeric" pattern="[0-9]*"></div>
+    <div class="field">
+      <label>Photo</label>
+      <div class="photo-upload">
+        <div class="avatar-fallback" id="mgPreview">?</div>
+        <input type="file" id="mgPhoto" accept="image/*" capture="environment">
+      </div>
+    </div>
+    <button class="btn btn-primary" id="mgSave">Save member</button>
+  `;
+  wrap.appendChild(card);
+
+  let photoDataUrl = "";
+  card.querySelector("#mgPhoto").onchange = async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    photoDataUrl = await readAndResizeImage(file);
+    const preview = card.querySelector("#mgPreview");
+    preview.outerHTML = `<img class="avatar" id="mgPreview" src="${photoDataUrl}">`;
+  };
+
+  card.querySelector("#mgPhone").addEventListener("input", (e)=>{
+    e.target.value = e.target.value.replace(/\D/g,"").slice(0,10);
+  });
+
+  card.querySelector("#mgSave").onclick = async ()=>{
+    const block = card.querySelector("#mgBlock").value;
+    const flat = card.querySelector("#mgFlat").value.trim();
+    const name = card.querySelector("#mgName").value.trim();
+    const phone = card.querySelector("#mgPhone").value.trim();
+    if(!flat || !phone){ toast("Flat no. and phone required"); return; }
+    if(phone.length !== 10){ toast("Phone number must be exactly 10 digits"); return; }
+    try{
+      await tursoExec(
+        `INSERT INTO flat_members (block, flat_no, member_name, phone, photo_url) VALUES (?,?,?,?,?)`,
+        [block, flat, name, phone, photoDataUrl]
+      );
+      toast("Member saved");
+    }catch(e){
+      console.error(e);
+      toast("Save failed: " + (e.message || e));
+      return;
+    }
+    card.querySelector("#mgFlat").value = "";
+    card.querySelector("#mgName").value = "";
+    card.querySelector("#mgPhone").value = "";
+    card.querySelector("#mgPhoto").value = "";
+    photoDataUrl = "";
+    const preview = card.querySelector("#mgPreview") || card.querySelector("img#mgPreview");
+    if(preview) preview.outerHTML = `<div class="avatar-fallback" id="mgPreview">?</div>`;
+    drawExistingMembers();
+  };
+
+  const listCard = document.createElement("div");
+  listCard.className = "card";
+  listCard.innerHTML = `<div class="section-title">Existing flat members</div><div id="mgList"></div>`;
+  wrap.appendChild(listCard);
+
+  async function drawExistingMembers(){
+    const box = listCard.querySelector("#mgList");
+    let rows = [];
+    try{
+      const res = await tursoExec(`SELECT * FROM flat_members ORDER BY block, flat_no`);
+      rows = res.rows;
+    }catch(e){
+      console.error(e);
+      box.innerHTML = "";
+      const err = document.createElement("div");
+      err.className = "empty";
+      err.style.color = "var(--red)";
+      err.textContent = "Couldn't load members: " + (e.message || e);
+      box.appendChild(err);
+      return;
+    }
+    box.innerHTML = "";
+    if(!rows.length){ box.appendChild(emptyState("No members added yet.")); return; }
+    rows.forEach(m=>{
+      const row = document.createElement("div");
+      row.className = "member-row";
+      const avatar = m.photo_url
+        ? `<img class="avatar avatar-sm" src="${m.photo_url}">`
+        : `<div class="avatar-fallback avatar-sm">${initials(m.member_name)}</div>`;
+      row.innerHTML = `
+        ${avatar}
+        <div class="member-info">
+          <div class="mname">${m.member_name || "Unnamed"}</div>
+          <div class="mmeta">Block ${m.block} · Flat ${m.flat_no}${m.phone ? " · "+m.phone : ""}</div>
+        </div>
+      `;
+      const del = document.createElement("button");
+      del.className = "mcall";
+      del.style.borderColor = "var(--red)";
+      del.style.color = "var(--red)";
+      del.textContent = "Remove";
+      del.onclick = async ()=>{
+        await tursoExec(`DELETE FROM flat_members WHERE id=?`, [m.id]);
+        toast("Member removed");
+        drawExistingMembers();
+      };
+      row.appendChild(del);
+      box.appendChild(row);
+    });
+  }
+  drawExistingMembers();
+
+  const accCard = document.createElement("div");
+  accCard.className = "card";
+  accCard.innerHTML = `
+    <div class="section-title">Admin account</div>
+    <div class="field"><label>New Admin password</label><input id="adminNewPass" type="password"></div>
+    <button class="btn btn-primary" id="adminChangePassBtn">Update password</button>
+  `;
+  wrap.appendChild(accCard);
+  accCard.querySelector("#adminChangePassBtn").onclick = async ()=>{
+    const np = accCard.querySelector("#adminNewPass").value;
+    if(np.length < 6){ toast("Use at least 6 characters"); return; }
+    try{
+      await changeAdminPassword(np);
+      toast("Admin password updated");
+      accCard.querySelector("#adminNewPass").value = "";
+    }catch(e){ console.error(e); toast("Failed: " + (e.message||e)); }
+  };
+
+  const featCard = document.createElement("div");
+  featCard.className = "card";
+  featCard.innerHTML = `<div class="section-title">Feature settings</div><div id="featBox"></div>`;
+  wrap.appendChild(featCard);
+  const FEATURES = [
+    { key:"camera_enabled", title:"Visitor photo capture", desc:"Security can take a live photo of each visitor on the New Entry screen.",
+      get:()=>cameraEnabled, set:v=>{ cameraEnabled = v; } },
+    { key:"passcode_enabled", title:"Guest passcodes", desc:"Members can generate guest passcodes; Security can verify them at the gate.",
+      get:()=>passcodesEnabled, set:v=>{ passcodesEnabled = v; } },
+    { key:"plate_scan_enabled", title:"Number plate scanner", desc:"Security can scan or upload a plate image to auto-fill the vehicle number.",
+      get:()=>plateScanEnabled, set:v=>{ plateScanEnabled = v; } }
+  ];
+  function drawFeatures(){
+    const box = featCard.querySelector("#featBox");
+    box.innerHTML = "";
+    FEATURES.forEach(f=>{
+      const on = f.get();
+      const row = document.createElement("div");
+      row.style.cssText = "margin-bottom:14px;";
+      row.innerHTML = `<div style="font-weight:700;font-size:.9rem;">${f.title}</div>
+        <p style="font-size:.76rem;color:var(--muted);margin:2px 0 8px;">${f.desc}</p>`;
+      const btn = document.createElement("button");
+      btn.className = "btn" + (on ? " btn-primary" : "");
+      if(!on) btn.style.cssText = "background:var(--panel);color:var(--ink);box-shadow:var(--neu-inset);";
+      btn.textContent = `${on ? "ON" : "OFF"} - tap to turn ${on ? "off" : "on"}`;
+      btn.onclick = async ()=>{
+        const next = !f.get();
+        try{
+          await setSetting(f.key, next ? "on" : "off");
+          f.set(next);
+          toast(`${f.title} turned ${next ? "on" : "off"}`);
+          drawFeatures();
+          renderTabs();
+        }catch(e){ console.error(e); toast("Failed: " + (e.message||e)); }
+      };
+      row.appendChild(btn);
+      box.appendChild(row);
+    });
+  }
+  drawFeatures();
+
+  const dataCard = document.createElement("div");
+  dataCard.className = "card";
+  dataCard.innerHTML = `
+    <div class="section-title">Data cleanup</div>
+    <div id="dcCounts" class="meta-line" style="margin:0 0 12px;line-height:1.7;">Loading counts…</div>
+
+    <div class="field"><label>Auto-delete visitor records older than (runs on app start)</label>
+      <select id="dcRetention">
+        <option value="0">Never</option>
+        <option value="1">1 day</option>
+        <option value="3">3 days</option>
+        <option value="7">7 days</option>
+        <option value="15">15 days</option>
+        <option value="30">30 days</option>
+        <option value="90">90 days</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="dcSaveRetention" style="margin-bottom:16px;">Save auto-delete setting</button>
+
+    <div class="field"><label>Delete visitor records older than</label>
+      <select id="dcAge">
+        <option value="1">1 day</option>
+        <option value="3">3 days</option>
+        <option value="7" selected>7 days</option>
+        <option value="30">30 days</option>
+        <option value="90">90 days</option>
+      </select>
+    </div>
+    <button class="btn" id="dcOldBtn" style="background:var(--amber);color:#2c2450;margin-bottom:8px;">Delete old visitor records</button>
+    <button class="btn" id="dcPassBtn" style="background:var(--amber);color:#2c2450;margin-bottom:8px;">Clear used / expired / cancelled passcodes</button>
+    <button class="btn" id="dcPassAllBtn" style="background:var(--red);color:#fff;margin-bottom:8px;">Clear ALL passcodes</button>
+    <button class="btn" id="dcAllBtn" style="background:var(--red);color:#fff;">Clear ALL visitor history</button>
+  `;
+  wrap.appendChild(dataCard);
+
+  async function loadCounts(){
+    const box = dataCard.querySelector("#dcCounts");
+    try{
+      const n = async (sql, args=[]) => (await tursoExec(sql, args)).rows[0].n;
+      const now = nowIso();
+      const [v, pAll, pAct, fm, ma] = await Promise.all([
+        n(`SELECT COUNT(*) AS n FROM visitors`),
+        n(`SELECT COUNT(*) AS n FROM guest_passcodes`),
+        n(`SELECT COUNT(*) AS n FROM guest_passcodes WHERE status='active' AND expires_at > ?`, [now]),
+        n(`SELECT COUNT(*) AS n FROM flat_members`),
+        n(`SELECT COUNT(*) AS n FROM member_accounts`)
+      ]);
+      box.innerHTML = `Visitor records: <b>${v}</b><br>Passcodes: <b>${pAll}</b> (${pAct} active)<br>Flat members: <b>${fm}</b> · Member logins: <b>${ma}</b>`;
+    }catch(e){ console.error(e); box.textContent = "Couldn't load counts: " + (e.message||e); }
+  }
+  loadCounts();
+  getSetting("retention_days", "7").then(v => { dataCard.querySelector("#dcRetention").value = v; });
+
+  const runCleanup = async (okMsg, fn)=>{
+    try{
+      await fn();
+      toast(okMsg);
+      await refreshVisitors();
+      loadCounts();
+    }catch(e){ console.error(e); toast("Failed: " + (e.message||e)); }
+  };
+
+  dataCard.querySelector("#dcSaveRetention").onclick = async ()=>{
+    const v = dataCard.querySelector("#dcRetention").value;
+    try{
+      await setSetting("retention_days", v);
+      toast(v==="0" ? "Auto-delete turned off" : `Auto-delete set to ${v} day(s)`);
+    }catch(e){ console.error(e); toast("Failed: " + (e.message||e)); }
+  };
+  dataCard.querySelector("#dcOldBtn").onclick = ()=>{
+    const days = parseInt(dataCard.querySelector("#dcAge").value);
+    if(!confirm(`Delete all visitor records older than ${days} day(s)?`)) return;
+    runCleanup("Old visitor records deleted", ()=>
+      tursoExec(`DELETE FROM visitors WHERE created_at < ?`, [addDaysIso(nowIso(), -days)]));
+  };
+  dataCard.querySelector("#dcPassBtn").onclick = ()=>{
+    if(!confirm("Delete all used, cancelled and expired passcodes? Active passcodes are kept.")) return;
+    runCleanup("Inactive passcodes cleared", ()=>
+      tursoExec(`DELETE FROM guest_passcodes WHERE status != 'active' OR expires_at <= ?`, [nowIso()]));
+  };
+  dataCard.querySelector("#dcPassAllBtn").onclick = ()=>{
+    if(!confirm("Delete ALL passcodes, including active ones? Guests holding them will be refused at the gate.")) return;
+    runCleanup("All passcodes cleared", ()=> tursoExec(`DELETE FROM guest_passcodes`));
+  };
+  dataCard.querySelector("#dcAllBtn").onclick = ()=>{
+    const t = prompt("This permanently deletes ALL visitor records and cannot be undone.\nType DELETE to confirm:");
+    if(t !== "DELETE") return;
+    runCleanup("All visitor history cleared", ()=> tursoExec(`DELETE FROM visitors`));
+  };
+
+  const acctCard = document.createElement("div");
+  acctCard.className = "card";
+  acctCard.innerHTML = `
+    <div class="section-title">Create member login</div>
+    <p style="font-size:.78rem;color:var(--muted);margin:0 0 10px;">
+      Give a resident their own username and password to log in as Member — they'll only see their own flat's visitors.
+    </p>
+    <div class="row2">
+      <div class="field"><label>Block</label><select id="maBlock">${BLOCKS.map(b=>`<option value="${b}">Block ${b}</option>`).join("")}</select></div>
+      <div class="field"><label>Flat no.</label><input id="maFlat" placeholder="e.g. 204"></div>
+    </div>
+    <div class="field"><label>Resident name</label><input id="maName" placeholder="e.g. Priya Sharma"></div>
+    <div class="row2">
+      <div class="field"><label>Username</label><input id="maUser" autocomplete="off"></div>
+      <div class="field"><label>Password</label><input id="maPass" type="password"></div>
+    </div>
+    <button class="btn btn-primary" id="maCreateBtn">Create login</button>
+  `;
+  wrap.appendChild(acctCard);
+  acctCard.querySelector("#maCreateBtn").onclick = async ()=>{
+    const block = acctCard.querySelector("#maBlock").value;
+    const flat = acctCard.querySelector("#maFlat").value.trim();
+    const name = acctCard.querySelector("#maName").value.trim();
+    const username = acctCard.querySelector("#maUser").value.trim();
+    const password = acctCard.querySelector("#maPass").value;
+    if(!flat || !username || !password){ toast("Flat, username and password are required"); return; }
+    if(password.length < 6){ toast("Password must be at least 6 characters"); return; }
+    try{
+      await createMemberAccount(block, flat, name, username, password);
+      toast("Member login created");
+      acctCard.querySelector("#maFlat").value = "";
+      acctCard.querySelector("#maName").value = "";
+      acctCard.querySelector("#maUser").value = "";
+      acctCard.querySelector("#maPass").value = "";
+      drawMemberAccounts();
+    }catch(e){
+      console.error(e);
+      const msg = (e.message||"").includes("UNIQUE") ? "That username is already taken" : "Failed: " + (e.message||e);
+      toast(msg);
+    }
+  };
+
+  const acctListCard = document.createElement("div");
+  acctListCard.className = "card";
+  acctListCard.innerHTML = `<div class="section-title">Member logins</div><div id="maList"></div>`;
+  wrap.appendChild(acctListCard);
+
+  async function drawMemberAccounts(){
+    const box = acctListCard.querySelector("#maList");
+    box.innerHTML = "Loading…";
+    try{
+      const { rows } = await tursoExec(`SELECT * FROM member_accounts ORDER BY block, flat_no`);
+      box.innerHTML = "";
+      if(!rows.length){ box.appendChild(emptyState("No member logins created yet.")); return; }
+      rows.forEach(acc=>{
+        const row = document.createElement("div");
+        row.className = "member-row";
+        row.innerHTML = `
+          <div class="avatar-fallback">${initials(acc.display_name || acc.username)}</div>
+          <div class="member-info">
+            <div class="mname">${acc.display_name || acc.username}</div>
+            <div class="mmeta">Block ${acc.block} · Flat ${acc.flat_no} · @${acc.username}</div>
+          </div>
+        `;
+        const btnGroup = document.createElement("div");
+        btnGroup.style.cssText = "display:flex;flex-direction:column;gap:4px;";
+        const resetBtn = document.createElement("button");
+        resetBtn.className = "mcall";
+        resetBtn.textContent = "Reset password";
+        resetBtn.onclick = async ()=>{
+          const np = prompt(`New password for @${acc.username} (min 6 characters):`);
+          if(!np) return;
+          if(np.length < 6){ toast("Password must be at least 6 characters"); return; }
+          try{
+            await resetMemberPassword(acc.id, np);
+            toast("Password reset");
+          }catch(e){ console.error(e); toast("Failed: " + (e.message||e)); }
+        };
+        const delBtn = document.createElement("button");
+        delBtn.className = "mcall";
+        delBtn.style.color = "var(--red)";
+        delBtn.textContent = "Delete";
+        delBtn.onclick = async ()=>{
+          if(!confirm(`Delete login for @${acc.username}?`)) return;
+          try{
+            await deleteMemberAccount(acc.id);
+            toast("Login deleted");
+            drawMemberAccounts();
+          }catch(e){ console.error(e); toast("Failed: " + (e.message||e)); }
+        };
+        btnGroup.appendChild(resetBtn);
+        btnGroup.appendChild(delBtn);
+        row.appendChild(btnGroup);
+        box.appendChild(row);
+      });
+    }catch(e){
+      console.error(e);
+      box.innerHTML = "";
+      box.appendChild(emptyState("Couldn't load member logins: " + (e.message||e)));
+    }
+  }
+  drawMemberAccounts();
+
+  const logoutBtn = document.createElement("button");
+  logoutBtn.className = "btn";
+  logoutBtn.style.cssText = "background:var(--red);color:#fff;margin-top:4px;";
+  logoutBtn.textContent = "Log out of Admin";
+  logoutBtn.onclick = ()=>{
+    adminAuthenticated = false;
+    role = "security";
+    activeTab = "gate";
+    renderRoleBar();
+    renderTabs();
+    render();
+  };
+  wrap.appendChild(logoutBtn);
+
+  // ---- left-side index: jump to any section, scroll up/down ----
+  const secs = Array.from(wrap.children);
+  const SECTION_LABELS = ["Add member","Members","Admin password","Features","Data cleanup","Add login","Logins"];
+  const targets = [];
+  SECTION_LABELS.forEach((label, i)=>{
+    if(!secs[i]) return;
+    secs[i].id = "mgsec" + i;
+    targets.push({ label, el: secs[i] });
+  });
+
+  const layout = document.createElement("div");
+  layout.className = "manage-layout";
+  const rail = document.createElement("div");
+  rail.className = "manage-rail";
+  const stickyH = ()=> (document.getElementById("stickyTop")?.offsetHeight || 140);
+  const place = ()=>{
+    const top = stickyH() + 8;
+    rail.style.top = top + "px";
+    rail.style.maxHeight = `calc(100vh - ${top + 8}px)`;
+    targets.forEach(t=>{ t.el.style.scrollMarginTop = (top + 4) + "px"; });
+  };
+
+  const mkBtn = (label, cls, fn)=>{
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "rail-btn " + cls;
+    b.textContent = label;
+    b.onclick = fn;
+    return b;
+  };
+  rail.appendChild(mkBtn("↑ Top", "rail-edge", ()=> window.scrollTo({ top:0, behavior:"smooth" })));
+  const railBtns = targets.map(t=>{
+    const b = mkBtn(t.label, "", ()=>{
+      place();
+      t.el.scrollIntoView({ behavior:"smooth", block:"start" });
+    });
+    rail.appendChild(b);
+    return b;
+  });
+  rail.appendChild(mkBtn("↓ End", "rail-edge", ()=> window.scrollTo({ top: document.documentElement.scrollHeight, behavior:"smooth" })));
+
+  layout.appendChild(rail);
+  layout.appendChild(wrap);
+
+  const highlight = ()=>{
+    if(!document.body.contains(rail)){
+      window.removeEventListener("scroll", highlight);
+      window.removeEventListener("resize", place);
+      return;
+    }
+    const line = stickyH() + 24;
+    let cur = 0;
+    targets.forEach((t,i)=>{ if(t.el.getBoundingClientRect().top <= line) cur = i; });
+    if(window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) cur = targets.length - 1;
+    railBtns.forEach((b,i)=> b.classList.toggle("active", i === cur));
+  };
+  window.addEventListener("scroll", highlight, { passive:true });
+  window.addEventListener("resize", place);
+  place();
+  setTimeout(()=>{ place(); highlight(); }, 400);
+
+  return layout;
+}
+
+/* ---------------- Visit card ---------------- */
+function visitCard(v, showApprove=false, showCheckout=false, showDuration=false){
+  const el = document.createElement("div");
+  const isFresh = v.status==="pending" && v.created_at && minutesBetween(v.created_at, nowIso()) < 2;
+  el.className = "visit-card" + (isFresh ? " fresh" : "");
+  const typeInfo = VISITOR_TYPES.find(t=>t.label===v.visitor_type);
+  const ic = typeInfo ? typeInfo.ic : "🔔";
+
+  let durationHtml = "";
+  if(v.status==="approved" && v.entry_time && !v.exit_time){
+    durationHtml = `<div class="meta-line">Inside: <span class="timer" data-entry="${v.entry_time}">…</span> min</div>`;
+  } else if(v.exit_time && v.entry_time){
+    durationHtml = `<div class="meta-line">Present: <strong>${minutesBetween(v.entry_time, v.exit_time)} min</strong> (In ${v.entry_time.slice(11,16)} · Out ${v.exit_time.slice(11,16)})</div>`;
+  }
+
+  let waitHtml = "";
+  if(v.status==="pending" && v.created_at){
+    waitHtml = `<div class="wait-line"><span class="wait-timer" data-created="${v.created_at}">…</span></div>`;
+  }
+
+  const contactLine = (v.phone && (role==="security" || role==="admin"))
+    ? `<div class="meta-line">📞 <a href="tel:${v.phone}" style="color:var(--gate-green-dark);font-weight:600;">${v.phone}</a></div>`
+    : "";
+
+  const photoThumb = (v.visitor_photo && v.visitor_photo !== "null" && (role==="security" || role==="admin"))
+    ? `<img class="avatar" src="${v.visitor_photo}" style="float:right;margin-left:10px;">`
+    : "";
+
+  el.innerHTML = `
+    ${photoThumb}
+    <div class="visit-top">
+      <div>
+        <div class="visit-name">${ic} ${v.visitor_name || "Visitor"}${isFresh ? ' <span class="new-tag">NEW</span>' : ""}</div>
+        <div class="visit-sub">${v.visitor_type} · Block ${v.block}-${v.flat_no}${v.vehicle_no ? " · "+v.vehicle_no : ""}</div>
+      </div>
+      <span class="badge badge-${v.status}">${v.status.replace("_"," ")}</span>
+    </div>
+    ${contactLine}
+    ${v.purpose ? `<div class="meta-line">${v.purpose}</div>` : ""}
+    ${durationHtml}
+    ${waitHtml}
+    <div class="meta-line">Logged ${formatDateDMY(v.created_at)} ${v.created_at ? v.created_at.slice(11,16) : ""}</div>
+  `;
+
+  if(showApprove){
+    const row = document.createElement("div");
+    row.className = "btn-row";
+    const canApprove = role==="member" || role==="admin";
+    if(canApprove){
+      const a = document.createElement("button");
+      a.className = "btn btn-approve";
+      a.textContent = "Approve";
+      a.onclick = ()=> updateStatus(v.id, "approved", role);
+      const r = document.createElement("button");
+      r.className = "btn btn-reject";
+      r.textContent = "Reject";
+      r.onclick = ()=> updateStatus(v.id, "rejected", role);
+      row.appendChild(a); row.appendChild(r);
+    } else {
+      row.innerHTML = `<div class="meta-line">Waiting for member/admin approval…</div>`;
+    }
+    el.appendChild(row);
+  }
+
+  if(showCheckout){
+    const row = document.createElement("div");
+    row.className = "btn-row";
+    const o = document.createElement("button");
+    o.className = "btn btn-out";
+    o.textContent = "Mark check-out";
+    o.onclick = ()=> checkOut(v.id);
+    row.appendChild(o);
+    el.appendChild(row);
+  }
+
+  return el;
+}
+
+async function updateStatus(id, status, approver){
+  const patch = status==="approved" ? `, entry_time = ?` : "";
+  const args = status==="approved" ? [status, approver, nowIso(), id] : [status, approver, id];
+  await tursoExec(`UPDATE visitors SET status=?, approved_by=?${patch} WHERE id=?`, args);
+  toast(status==="approved" ? "Approved — allow entry" : "Visitor rejected");
+  await refreshVisitors();
+  renderRoleBar();
+  renderTabs();
+  render();
+}
+
+async function checkOut(id){
+  await tursoExec(`UPDATE visitors SET status='checked_out', exit_time=? WHERE id=?`, [nowIso(), id]);
+  toast("Check-out recorded");
+  await refreshVisitors();
+  renderRoleBar();
+  renderTabs();
+  render();
+}
+
+/* ---------------- Admin role password gate ---------------- */
+function renderMemberLogin(){
+  const wrap = document.createElement("div");
+  const card = document.createElement("div");
+  card.className = "card sa-card";
+  card.innerHTML = `
+    <div class="section-title">Member login</div>
+    <p style="font-size:.78rem;color:var(--muted);margin:0 0 10px;">
+      Ask your apartment Admin if you don't have login details yet.
+    </p>
+    <div class="field"><label>Username</label><input id="memberUserInput" autocomplete="off"></div>
+    <div class="field"><label>Password</label><input id="memberPassInput" type="password"></div>
+    <button class="btn btn-primary" id="memberLoginBtn">Login</button>
+  `;
+  wrap.appendChild(card);
+  const submit = async ()=>{
+    const u = card.querySelector("#memberUserInput").value.trim();
+    const p = card.querySelector("#memberPassInput").value;
+    try{
+      const acc = await memberLogin(u, p);
+      if(acc){
+        memberAuthenticated = true;
+        memberBlock = acc.block;
+        memberFlat = acc.flat_no;
+        memberDisplayName = acc.display_name || "";
+        activeTab = "dashboard";
+        toast(`Welcome${memberDisplayName ? ", " + memberDisplayName : ""}`);
+        renderRoleBar();
+        renderTabs();
+        render();
+      } else {
+        toast("Invalid username or password");
+      }
+    }catch(e){ console.error(e); toast("Login failed: " + (e.message||e)); }
+  };
+  card.querySelector("#memberLoginBtn").onclick = submit;
+  card.querySelector("#memberPassInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter") submit(); });
+  return wrap;
+}
+
+function renderAdminLogin(){
+  const wrap = document.createElement("div");
+  const card = document.createElement("div");
+  card.className = "card sa-card";
+  card.innerHTML = `
+    <div class="section-title">Admin login</div>
+    <div class="field"><label>Password</label><input id="adminPassInput" type="password" autocomplete="off"></div>
+    <button class="btn btn-primary" id="adminLoginBtn">Unlock Admin</button>
+  `;
+  wrap.appendChild(card);
+  const submit = async ()=>{
+    const p = card.querySelector("#adminPassInput").value;
+    try{
+      const ok = await checkAdminPassword(p);
+      if(ok){
+        adminAuthenticated = true;
+        activeTab = "members";
+        toast("Welcome, Admin");
+        renderTabs();
+        render();
+      } else {
+        toast("Incorrect password");
+      }
+    }catch(e){ console.error(e); toast("Login failed: " + (e.message||e)); }
+  };
+  card.querySelector("#adminLoginBtn").onclick = submit;
+  card.querySelector("#adminPassInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter") submit(); });
+  return wrap;
+}
+
+/* ---------------- License tab (Admin) — activate a key ---------------- */
+function renderLicenseTab(){
+  const wrap = document.createElement("div");
+  const statusCard = document.createElement("div");
+  statusCard.className = "card";
+  let statusHtml = "";
+  if(appLicense.status === "trial"){
+    statusHtml = `<div class="section-title">Status</div><p>Free trial — <strong>${appLicense.daysLeft} day(s)</strong> left.</p>`;
+  } else if(appLicense.status === "licensed"){
+    statusHtml = `<div class="section-title">Status</div><p>Licensed — valid until <strong>${formatDateDMY(appLicense.licenseExpiresAt)}</strong>.</p>`;
+  } else {
+    statusHtml = `<div class="section-title">Status</div><p style="color:var(--red);font-weight:600;">Expired — enter a key below to reactivate.</p>`;
+  }
+  statusCard.innerHTML = statusHtml;
+  wrap.appendChild(statusCard);
+  wrap.appendChild(buildKeyActivationCard());
+  return wrap;
+}
+
+function buildKeyActivationCard(){
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="section-title">Activate a license key</div>
+    <div class="key-input-group">
+      <input maxlength="4" inputmode="numeric" class="keyseg">
+      <input maxlength="4" inputmode="numeric" class="keyseg">
+      <input maxlength="4" inputmode="numeric" class="keyseg">
+      <input maxlength="4" inputmode="numeric" class="keyseg">
+    </div>
+    <button class="btn btn-primary" id="activateBtn">Activate</button>
+  `;
+  const segs = card.querySelectorAll(".keyseg");
+  segs.forEach((seg, i)=>{
+    seg.addEventListener("input", ()=>{
+      seg.value = seg.value.replace(/\D/g,"");
+      if(seg.value.length===4 && segs[i+1]) segs[i+1].focus();
+    });
+  });
+  card.querySelector("#activateBtn").onclick = async ()=>{
+    const key = Array.from(segs).map(s=>s.value).join("");
+    if(key.length !== 16){ toast("Enter all 16 digits"); return; }
+    try{
+      const res = await activateLicenseKey(key);
+      if(res.ok){
+        toast("License activated!");
+        appLicense = await ensureLicenseState();
+        renderRoleBar();
+        renderTabs();
+        render();
+      } else {
+        toast(res.msg);
+      }
+    }catch(e){
+      console.error(e);
+      toast("Activation failed: " + (e.message||e));
+    }
+  };
+  return card;
+}
+
+/* ---------------- Lock screen (license expired) ---------------- */
+function renderLockScreen(){
+  const wrap = document.createElement("div");
+  wrap.className = "lock-screen";
+  wrap.innerHTML = `
+    <div class="lock-ic">🔒</div>
+    <h2 style="margin:0 0 6px;">License expired</h2>
+    <p style="color:var(--muted);font-size:.88rem;">Your free trial or license period has ended.<br>Enter a 16-digit license key to continue using Gate Register.</p>
+  `;
+  wrap.appendChild(buildKeyActivationCard());
+  const hint = document.createElement("p");
+  hint.style.cssText = "font-size:.75rem;color:var(--muted);margin-top:18px;";
+  hint.textContent = "Don't have a key? Tap \"⚙ Super Admin\" above to issue one.";
+  wrap.appendChild(hint);
+  return wrap;
+}
+
+/* ---------------- Super Admin console ---------------- */
+function renderSuperAdmin(){
+  const wrap = document.createElement("div");
+
+  const backRow = document.createElement("div");
+  backRow.style.cssText = "margin-bottom:10px;";
+  const backBtn = document.createElement("button");
+  backBtn.className = "btn";
+  backBtn.style.cssText = "background:var(--panel);border:1px solid var(--line);color:var(--ink);";
+  backBtn.textContent = "← Back to app";
+  backBtn.onclick = ()=>{ showSuperAdmin = false; render(); };
+  backRow.appendChild(backBtn);
+  wrap.appendChild(backRow);
+
+  if(!superAdminLoggedIn){
+    const card = document.createElement("div");
+    card.className = "card sa-card";
+    card.innerHTML = `
+      <div class="section-title">Super Admin login</div>
+      <div class="field"><label>Username</label><input id="saUser" autocomplete="off"></div>
+      <div class="field"><label>Password</label><input id="saPass" type="password"></div>
+      <button class="btn btn-primary" id="saLoginBtn">Login</button>
+    `;
+    wrap.appendChild(card);
+    card.querySelector("#saLoginBtn").onclick = async ()=>{
+      const u = card.querySelector("#saUser").value.trim();
+      const p = card.querySelector("#saPass").value;
+      try{
+        const ok = await superAdminLogin(u, p);
+        if(ok){ superAdminLoggedIn = true; toast("Welcome back"); render(); }
+        else toast("Invalid credentials");
+      }catch(e){ console.error(e); toast("Login failed: " + (e.message||e)); }
+    };
+    return wrap;
+  }
+
+  // Logged-in console
+  const issueCard = document.createElement("div");
+  issueCard.className = "card sa-card";
+  issueCard.innerHTML = `
+    <div class="section-title">Issue a new license key</div>
+    <div class="field"><label>Duration</label>
+      <select id="saDuration">
+        <option value="1_month">1 Month</option>
+        <option value="6_months">6 Months</option>
+        <option value="1_year">1 Year</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="saIssueBtn">Generate key</button>
+    <div id="saNewKey" style="margin-top:12px;"></div>
+  `;
+  wrap.appendChild(issueCard);
+  issueCard.querySelector("#saIssueBtn").onclick = async ()=>{
+    const dur = issueCard.querySelector("#saDuration").value;
+    try{
+      const key = await issueLicenseKey(dur);
+      issueCard.querySelector("#saNewKey").innerHTML = `
+        <div class="meta-line" style="font-size:.85rem;">New key (share this with the apartment admin):</div>
+        <div class="key-mono" style="font-size:1.1rem;margin-top:4px;">${formatKey(key)}</div>
+      `;
+      toast("Key generated");
+      drawKeyList();
+    }catch(e){ console.error(e); toast("Failed: " + (e.message||e)); }
+  };
+
+  const listCard = document.createElement("div");
+  listCard.className = "card sa-card";
+  listCard.innerHTML = `<div class="section-title">Issued keys</div><div id="saKeyList"></div>`;
+  wrap.appendChild(listCard);
+
+  async function drawKeyList(){
+    const box = listCard.querySelector("#saKeyList");
+    box.innerHTML = "Loading…";
+    try{
+      const { rows } = await tursoExec(`SELECT * FROM license_keys ORDER BY issued_at DESC LIMIT 100`);
+      box.innerHTML = "";
+      if(!rows.length){ box.appendChild(emptyState("No keys issued yet.")); return; }
+      rows.forEach(k=>{
+        const row = document.createElement("div");
+        row.className = "key-list-item";
+        row.innerHTML = `
+          <span class="key-mono">${formatKey(k.license_key)}</span>
+          <span>${k.duration_label}</span>
+          <span class="badge badge-${k.status==='unused'?'pending':(k.status==='active'?'approved':'rejected')}">${k.status}</span>
+        `;
+        box.appendChild(row);
+      });
+    }catch(e){
+      console.error(e);
+      box.innerHTML = "";
+      box.appendChild(emptyState("Couldn't load keys: " + (e.message||e)));
+    }
+  }
+  drawKeyList();
+
+  const resetAdminCard = document.createElement("div");
+  resetAdminCard.className = "card sa-card";
+  resetAdminCard.innerHTML = `
+    <div class="section-title">Reset Admin (role) password</div>
+    <p style="font-size:.78rem;color:var(--muted);margin:0 0 8px;">Use this if the apartment Admin forgets their password.</p>
+    <div class="field"><input id="resetAdminPass" type="password" placeholder="New Admin password"></div>
+    <button class="btn btn-primary" id="resetAdminBtn">Reset Admin password</button>
+  `;
+  wrap.appendChild(resetAdminCard);
+  resetAdminCard.querySelector("#resetAdminBtn").onclick = async ()=>{
+    const np = resetAdminCard.querySelector("#resetAdminPass").value;
+    if(np.length < 6){ toast("Use at least 6 characters"); return; }
+    try{
+      await changeAdminPassword(np);
+      toast("Admin password reset");
+      resetAdminCard.querySelector("#resetAdminPass").value = "";
+    }catch(e){ console.error(e); toast("Failed: " + (e.message||e)); }
+  };
+
+  const pwCard = document.createElement("div");
+  pwCard.className = "card sa-card";
+  pwCard.innerHTML = `
+    <div class="section-title">Change Super Admin password</div>
+    <div class="field"><label>New password</label><input id="saNewPass" type="password"></div>
+    <button class="btn btn-primary" id="saChangePassBtn">Update password</button>
+  `;
+  wrap.appendChild(pwCard);
+  pwCard.querySelector("#saChangePassBtn").onclick = async ()=>{
+    const newPass = pwCard.querySelector("#saNewPass").value;
+    if(newPass.length < 6){ toast("Use at least 6 characters"); return; }
+    try{
+      await changeSuperAdminPassword(DEFAULT_SUPERADMIN_USER, newPass);
+      toast("Password updated");
+      pwCard.querySelector("#saNewPass").value = "";
+    }catch(e){ console.error(e); toast("Failed: " + (e.message||e)); }
+  };
+
+  const logoutBtn = document.createElement("button");
+  logoutBtn.className = "btn";
+  logoutBtn.style.cssText = "background:var(--red);color:#fff;";
+  logoutBtn.textContent = "Log out of Super Admin";
+  logoutBtn.onclick = ()=>{ superAdminLoggedIn = false; render(); };
+  wrap.appendChild(logoutBtn);
+
+  return wrap;
+}
+
+/* ---------------- Passcode: Security verify card ---------------- */
+function buildPasscodeVerifyCard(){
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="section-title">Guest passcode check</div>
+    <p style="font-size:.78rem;color:var(--muted);margin:0 0 10px;">Guest has a passcode from the resident? Enter it here for instant entry — no approval wait.</p>
+    <div class="field"><input id="pcCode" placeholder="6-digit passcode" maxlength="6" inputmode="numeric" autocomplete="off" style="letter-spacing:4px;font-size:1.1rem;text-align:center;"></div>
+    <button class="btn btn-primary" id="pcVerifyBtn">Verify passcode</button>
+    <div id="pcResult" style="margin-top:12px;"></div>
+  `;
+  const codeEl = card.querySelector("#pcCode");
+  const result = card.querySelector("#pcResult");
+  codeEl.addEventListener("input", ()=>{
+    codeEl.value = codeEl.value.replace(/\D/g,"").slice(0,6);
+    result.innerHTML = "";
+  });
+
+  const verify = async ()=>{
+    const code = codeEl.value;
+    if(code.length !== 6){ toast("Enter all 6 digits"); return; }
+    let p;
+    try{ p = await findActivePasscode(code); }
+    catch(e){ console.error(e); toast("Check failed: " + (e.message||e)); return; }
+    if(!p){
+      result.innerHTML = `<div class="revisit-box"><div class="rv-title" style="color:var(--red);">Invalid, used or expired passcode</div>Do not allow entry. Ask the resident to approve via a normal entry.</div>`;
+      return;
+    }
+    result.innerHTML = `
+      <div class="revisit-box">
+        <div class="rv-title">✓ Passcode valid</div>
+        Block ${esc(p.block)} · Flat ${esc(p.flat_no)}${p.guest_name ? "<br>Expecting: " + esc(p.guest_name) : ""}${p.purpose ? "<br>" + esc(p.purpose) : ""}
+        <div class="field" style="margin:10px 0 0;"><label>Guest name</label><input id="pcName" value="${esc(p.guest_name || "")}" placeholder="Guest name"></div>
+        <button id="pcAllow">Allow entry</button>
+      </div>`;
+    result.querySelector("#pcAllow").onclick = async ()=>{
+      const name = result.querySelector("#pcName").value.trim() || "Guest";
+      try{
+        const fresh = await findActivePasscode(code);   // re-check: guards against double use
+        if(!fresh || fresh.id !== p.id){ toast("Passcode was just used or expired"); result.innerHTML = ""; return; }
+        const now = nowIso();
+        await tursoExec(`UPDATE guest_passcodes SET status='used', used_at=? WHERE id=?`, [now, p.id]);
+        await tursoExec(
+          `INSERT INTO visitors (visitor_name, phone, vehicle_no, visitor_type, block, flat_no, purpose, status, approved_by, created_by, entry_time, created_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+          [name, "", "", "Guest", p.block, p.flat_no, p.purpose || "Pre-approved via passcode", "approved", "passcode", "security", now, now]);
+        toast("Passcode accepted — entry logged");
+        await refreshVisitors();
+        activeTab = "inside";
+        renderRoleBar(); renderTabs(); render();
+      }catch(e){ console.error(e); toast("Failed: " + (e.message||e)); }
+    };
+  };
+  card.querySelector("#pcVerifyBtn").onclick = verify;
+  codeEl.addEventListener("keydown", (e)=>{ if(e.key==="Enter") verify(); });
+  return card;
+}
+
+/* ---------------- Passcode: Member tab ---------------- */
+function renderPasscodes(){
+  const wrap = document.createElement("div");
+
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="section-title">Expecting a guest?</div>
+    <p style="font-size:.78rem;color:var(--muted);margin:0 0 10px;">Generate a one-time passcode and share it with your guest. They show it to Security at the gate for instant entry — no approval wait.</p>
+    <div class="field"><label>Guest name (optional)</label><input id="pcGuest" placeholder="e.g. Ravi"></div>
+    <div class="field"><label>Purpose (optional)</label><input id="pcPurpose" placeholder="e.g. Family visit"></div>
+    <div class="field"><label>Valid for</label>
+      <select id="pcHours">
+        <option value="2">2 hours</option>
+        <option value="6">6 hours</option>
+        <option value="12">12 hours</option>
+        <option value="24" selected>24 hours</option>
+        <option value="48">2 days</option>
+        <option value="72">3 days</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="pcGenBtn">Generate passcode</button>
+    <div id="pcOut" style="margin-top:12px;"></div>
+  `;
+  wrap.appendChild(card);
+
+  const listCard = document.createElement("div");
+  listCard.className = "card";
+  listCard.innerHTML = `<div class="section-title">Your recent passcodes</div><div id="pcList"></div>`;
+  wrap.appendChild(listCard);
+
+  async function drawList(){
+    const box = listCard.querySelector("#pcList");
+    try{
+      const { rows } = await tursoExec(
+        `SELECT * FROM guest_passcodes WHERE block=? AND flat_no=? ORDER BY created_at DESC LIMIT 20`,
+        [memberBlock, memberFlat]);
+      box.innerHTML = "";
+      if(!rows.length){ box.appendChild(emptyState("No passcodes yet.")); return; }
+      const now = nowIso();
+      rows.forEach(p=>{
+        let st = p.status;
+        if(st==="active" && p.expires_at <= now) st = "expired";
+        const cls = st==="active" ? "badge-approved" : (st==="used" ? "badge-checked_out" : "badge-rejected");
+        const row = document.createElement("div");
+        row.className = "member-row";
+        row.innerHTML = `
+          <div class="member-info">
+            <div class="mname key-mono">${p.code.slice(0,3)} ${p.code.slice(3)}</div>
+            <div class="mmeta">${esc(p.guest_name || "Guest")}${p.purpose ? " · " + esc(p.purpose) : ""}<br>Valid till ${fmtDateTime(p.expires_at)}</div>
+          </div>
+          <span class="badge ${cls}">${st}</span>`;
+        if(st==="active"){
+          const c = document.createElement("button");
+          c.className = "mcall";
+          c.style.color = "var(--red)";
+          c.textContent = "Cancel";
+          c.onclick = async ()=>{
+            try{
+              await tursoExec(`UPDATE guest_passcodes SET status='cancelled' WHERE id=? AND block=? AND flat_no=?`, [p.id, memberBlock, memberFlat]);
+              toast("Passcode cancelled");
+              drawList();
+            }catch(e){ console.error(e); toast("Failed: " + (e.message||e)); }
+          };
+          row.appendChild(c);
+        }
+        box.appendChild(row);
+      });
+    }catch(e){
+      console.error(e);
+      box.innerHTML = "";
+      box.appendChild(emptyState("Couldn't load passcodes: " + (e.message||e)));
+    }
+  }
+
+  card.querySelector("#pcGenBtn").onclick = async ()=>{
+    const guest = card.querySelector("#pcGuest").value.trim();
+    const purpose = card.querySelector("#pcPurpose").value.trim();
+    const hours = parseInt(card.querySelector("#pcHours").value);
+    const out = card.querySelector("#pcOut");
+    try{
+      const { code, expires } = await createGuestPasscode(memberBlock, memberFlat, guest, purpose, hours, memberDisplayName || "member");
+      const expTxt = fmtDateTime(expires);
+      const msg = `Gate passcode${guest ? " for " + guest : ""}: ${code}\nFlat ${memberBlock}-${memberFlat}, BDA Nethravathi\nValid until ${expTxt}. Show this code to the security guard at the gate.`;
+      out.innerHTML = `
+        <div class="revisit-box" style="text-align:center;">
+          <div class="rv-title">Passcode for ${esc(guest || "your guest")}</div>
+          <div class="key-mono" style="font-size:2rem;letter-spacing:4px;margin:6px 0;">${code.slice(0,3)} ${code.slice(3)}</div>
+          <div class="meta-line">Valid until ${expTxt} · one-time use</div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="pcCopy">Copy</button>
+            <button class="btn btn-wa" id="pcWa" style="margin-top:0;">WhatsApp</button>
+          </div>
+        </div>`;
+      out.querySelector("#pcCopy").onclick = async ()=>{
+        try{ await navigator.clipboard.writeText(msg); toast("Copied"); }catch(e){ toast("Couldn't copy"); }
+      };
+      out.querySelector("#pcWa").onclick = ()=> window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+      card.querySelector("#pcGuest").value = "";
+      card.querySelector("#pcPurpose").value = "";
+      drawList();
+    }catch(e){ console.error(e); toast("Failed: " + (e.message||e)); }
+  };
+
+  drawList();
+  return wrap;
+}
+
+/* ---------------- Feature settings ---------------- */
+async function loadFeatureSettings(){
+  const [c, p, s] = await Promise.all([
+    getSetting("camera_enabled", "off"),
+    getSetting("passcode_enabled", "on"),
+    getSetting("plate_scan_enabled", "on")
+  ]);
+  const before = `${cameraEnabled}${passcodesEnabled}${plateScanEnabled}`;
+  cameraEnabled = c === "on";
+  passcodesEnabled = p === "on";
+  plateScanEnabled = s === "on";
+  if(before !== `${cameraEnabled}${passcodesEnabled}${plateScanEnabled}` && typeof renderTabs === "function"){
+    try{ renderTabs(); }catch(e){}
+  }
+}
+
+/* ---------------- Number plate reader ---------------- */
+/*PLATE-START*/
+const STATE_CODES = new Set(["AN","AP","AR","AS","BR","CH","CG","DD","DL","DN","GA","GJ","HP","HR","JH","JK","KA","KL","LA","LD","MH","ML","MN","MP","MZ","NL","OD","OR","PB","PY","RJ","SK","TN","TR","TS","UK","UP","WB"]);
+const TO_LETTER = {"0":"O","1":"I","2":"Z","4":"A","5":"S","6":"G","8":"B"};
+const TO_DIGIT  = {"O":"0","Q":"0","C":"0","D":"0","I":"1","L":"1","Z":"2","A":"4","S":"5","G":"0","T":"7","B":"8"};
+
+function formatPlateTyped(v){
+  const s = (v||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  let m = s.match(/^([A-Z]{2})(\d{2})([A-Z]{1,3})(\d{4})$/);
+  if(m) return `${m[1]}-${m[2]}-${m[3]}-${m[4]}`;
+  m = s.match(/^(\d{2})(BH)(\d{4})([A-Z]{1,2})$/);
+  if(m) return `${m[1]}-${m[2]}-${m[3]}-${m[4]}`;
+  return (v||"").toUpperCase();
+}
+
+// Returns the best Indian plate found in the OCR texts as "KA-05-XX-1234", or null.
+function extractPlate(texts){
+  let best = null;
+  const consider = (raw)=>{
+    const s = (raw||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+    for(const sl of [2,1,3]){
+      const total = 4 + sl + 4;
+      for(let i=0; i+total<=s.length; i++){
+        const w = s.substr(i,total).split("");
+        let cost = 0;
+        const fix = (idx, isLetter)=>{
+          const ch = w[idx];
+          const ok = isLetter ? /[A-Z]/.test(ch) : /[0-9]/.test(ch);
+          if(ok) return;
+          const map = isLetter ? TO_LETTER : TO_DIGIT;
+          if(map[ch]){ w[idx] = map[ch]; cost++; } else { cost += 5; }
+        };
+        for(let k=0;k<2;k++) fix(k,true);
+        for(let k=2;k<4;k++) fix(k,false);
+        for(let k=4;k<4+sl;k++) fix(k,true);
+        for(let k=4+sl;k<total;k++) fix(k,false);
+        if(cost > 2) continue;
+        let st = w[0]+w[1];
+        let stateOk = STATE_CODES.has(st);
+        if(!stateOk){
+          const near = ["KA", ...STATE_CODES].find(c => (c[0]!==st[0]) + (c[1]!==st[1]) <= 1);
+          if(near){ st = near; stateOk = true; cost += 2; }
+        }
+        if(!stateOk || cost > 2) continue;
+        const score = 10 - cost*2 + (sl===2 ? 1 : 0) + (st==="KA" ? 0.5 : 0) - i*0.1;
+        if(!best || score > best.score){
+          best = { score, cost, plate: `${st}-${w[2]}${w[3]}-${w.slice(4,4+sl).join("")}-${w.slice(4+sl).join("")}` };
+        }
+      }
+    }
+  };
+  texts.forEach(t=>{
+    consider(t);
+    String(t).split(/\n+/).forEach(consider);
+  });
+  return best;
+}
+/*PLATE-END*/
+
+let ocrWorker = null;
+let tesseractLoading = null;
+function loadTesseract(){
+  if(window.Tesseract) return Promise.resolve(window.Tesseract);
+  if(!tesseractLoading){
+    tesseractLoading = new Promise((resolve, reject)=>{
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+      s.onload = ()=> resolve(window.Tesseract);
+      s.onerror = ()=>{ tesseractLoading = null; reject(new Error("Could not load the reader — check internet")); };
+      document.head.appendChild(s);
+    });
+  }
+  return tesseractLoading;
+}
+async function getOcrWorker(){
+  if(ocrWorker) return ocrWorker;
+  const T = await loadTesseract();
+  ocrWorker = await T.createWorker("eng");
+  await ocrWorker.setParameters({ user_defined_dpi: "300" });
+  return ocrWorker;
+}
+
+function loadImageFromFile(file){
+  return new Promise((resolve, reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{ URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error("Could not open image")); };
+    img.src = url;
+  });
+}
+
+// Keeps only character-shaped dark blobs (drops frame, hologram, stickers, stripes, serial text)
+// and groups them into text lines. Returns null when it can't find a plausible plate text.
+function filterCharacters(bw, w, h){
+  const n = w*h;
+  const lab = new Int32Array(n).fill(-1);
+  const comps = [];
+  const stack = [];
+  for(let p=0;p<n;p++){
+    if(bw[p] !== 0 || lab[p] >= 0) continue;
+    const id = comps.length;
+    let minx=w, maxx=0, miny=h, maxy=0, area=0;
+    lab[p] = id; stack.push(p);
+    while(stack.length){
+      const q = stack.pop();
+      const x = q % w, y = (q / w) | 0;
+      area++;
+      if(x<minx) minx=x; if(x>maxx) maxx=x; if(y<miny) miny=y; if(y>maxy) maxy=y;
+      for(let dy=-1; dy<=1; dy++){
+        const yy = y+dy; if(yy<0 || yy>=h) continue;
+        for(let dx=-1; dx<=1; dx++){
+          const xx = x+dx; if(xx<0 || xx>=w || (!dx && !dy)) continue;
+          const m = yy*w+xx;
+          if(bw[m] === 0 && lab[m] < 0){ lab[m] = id; stack.push(m); }
+        }
+      }
+    }
+    comps.push({ id, ids:[id], minx, maxx, miny, maxy, area, bw: maxx-minx+1, bh: maxy-miny+1 });
+  }
+  const cands = comps.filter(c =>
+    c.bh >= h*0.06 && c.bh <= h*0.9 && c.bw <= w*0.5 &&
+    c.bw / c.bh <= 1.3 && c.bw / c.bh >= 0.1 && c.area >= c.bw*c.bh*0.18);
+  if(cands.length < 4) return null;
+  const median = (arr)=>{
+    // dominant height: the value shared (within 20%) by the most blobs
+    let bestH = arr[0], bestN = 0;
+    for(const hv of arr){
+      const cnt = arr.filter(v => v >= 0.8*hv && v <= 1.2*hv).length;
+      if(cnt > bestN || (cnt === bestN && hv > bestH)){ bestN = cnt; bestH = hv; }
+    }
+    return bestH;
+  };
+  cands.sort((p,q)=> (p.miny+p.maxy) - (q.miny+q.maxy));
+  let groups = [];
+  for(const c of cands){
+    const cy = (c.miny + c.maxy) / 2;
+    const g = groups[groups.length-1];
+    if(g && Math.abs(cy - g.cy) < 0.5*g.medH){
+      g.items.push(c);
+      g.cy = g.items.reduce((s,i)=> s + (i.miny+i.maxy)/2, 0) / g.items.length;
+      g.medH = median(g.items.map(i=>i.bh));
+    } else groups.push({ items:[c], cy, medH: c.bh });
+  }
+  groups = groups.map(g=>{
+    // glue fragments of one letter together (e.g. a K whose arms separated from its stem)
+    const sorted = [...g.items].sort((p,q)=> p.minx - q.minx);
+    const merged = [];
+    for(const it of sorted){
+      const prev = merged[merged.length-1];
+      if(prev){
+        const gap = it.minx - prev.maxx;
+        const ov = Math.min(prev.maxy, it.maxy) - Math.max(prev.miny, it.miny);
+        if(gap <= 0.07*g.medH && ov >= 0.4*Math.min(prev.bh, it.bh)){
+          prev.minx = Math.min(prev.minx, it.minx); prev.maxx = Math.max(prev.maxx, it.maxx);
+          prev.miny = Math.min(prev.miny, it.miny); prev.maxy = Math.max(prev.maxy, it.maxy);
+          prev.bw = prev.maxx - prev.minx + 1; prev.bh = prev.maxy - prev.miny + 1;
+          prev.ids = prev.ids.concat(it.ids);
+          continue;
+        }
+      }
+      merged.push({ ...it, ids: [...it.ids] });
+    }
+    const medH = median(merged.map(i=>i.bh));
+    const items = merged.filter(i => i.bh >= 0.7*medH && i.bh <= 1.4*medH && i.bw / i.bh <= 1.3);
+    return { items, medH };
+  }).filter(g => g.items.length >= 2);
+  if(!groups.length) return null;
+  const hMax = Math.max(...groups.map(g=>g.medH));
+  groups = groups.filter(g => g.medH >= 0.33*hMax);
+  const kept = groups.reduce((s,g)=> s + g.items.length, 0);
+  if(kept < 4 || kept > 14) return null;
+  const mask = new Uint8Array(n).fill(255);
+  const boxes = [];
+  let ux0=w, ux1=0, uy0=h, uy1=0;
+  const outGroups = groups.map(g=>{
+    let gy0=h, gy1=0;
+    g.items.forEach(c=>{
+      boxes.push({ minx:c.minx, maxx:c.maxx, miny:c.miny, maxy:c.maxy });
+      const idset = new Set(c.ids);
+      for(let y=c.miny; y<=c.maxy; y++) for(let x=c.minx; x<=c.maxx; x++){
+        const q = y*w+x; if(idset.has(lab[q])) mask[q] = 0;
+      }
+      ux0 = Math.min(ux0, c.minx); ux1 = Math.max(ux1, c.maxx);
+      uy0 = Math.min(uy0, c.miny); uy1 = Math.max(uy1, c.maxy);
+      gy0 = Math.min(gy0, c.miny); gy1 = Math.max(gy1, c.maxy);
+    });
+    return { miny: gy0, maxy: gy1 };
+  });
+  return { mask, groups: outGroups, charH: hMax, count: kept, boxes, box: { x0:ux0, x1:ux1, y0:uy0, y1:uy1 } };
+}
+
+// Cleans a region of the photo. Returns a black-on-white image containing only the characters,
+// plus one image per text line (two-row plates have two lines).
+function makeVariants(img, r, scale){
+  const w = Math.max(1, Math.round(r.sw*scale)), h = Math.max(1, Math.round(r.sh*scale));
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d");
+  ctx.drawImage(img, r.sx, r.sy, r.sw, r.sh, 0, 0, w, h);
+  const id = ctx.getImageData(0, 0, w, h);
+  const d = id.data, n = w*h;
+  const gray = new Uint8ClampedArray(n);
+  let lo = 255, hi = 0;
+  for(let i=0;i<n;i++){
+    const g = Math.round(0.299*d[i*4] + 0.587*d[i*4+1] + 0.114*d[i*4+2]);
+    gray[i] = g; if(g<lo) lo=g; if(g>hi) hi=g;
+  }
+  const range = Math.max(1, hi-lo);
+  const hist = new Array(256).fill(0);
+  for(let i=0;i<n;i++){ gray[i] = Math.round((gray[i]-lo)*255/range); hist[gray[i]]++; }
+  let sum = 0; for(let t=0;t<256;t++) sum += t*hist[t];
+  let sumB = 0, wB = 0, maxVar = 0, thr = 128;
+  for(let t=0;t<256;t++){
+    wB += hist[t]; if(!wB) continue;
+    const wF = n - wB; if(!wF) break;
+    sumB += t*hist[t];
+    const mB = sumB/wB, mF = (sum-sumB)/wF;
+    const v = wB*wF*(mB-mF)*(mB-mF);
+    if(v > maxVar){ maxVar = v; thr = t; }
+  }
+  let white = 0; for(let i=0;i<n;i++) if(gray[i] > thr) white++;
+  const invert = white < n/2;   // dark plate with light text -> flip so text is dark on light
+  let bw = new Uint8Array(n);
+  for(let i=0;i<n;i++) bw[i] = ((gray[i] > thr) !== invert) ? 255 : 0;
+
+  const morph = (src, wantDark, rad)=>{
+    const tmp = new Uint8Array(n), out = new Uint8Array(n);
+    // horizontal pass
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        let hit = false;
+        for(let k=-rad;k<=rad && !hit;k++){ const xx = x+k; if(xx>=0 && xx<w && (src[y*w+xx] === 0) === wantDark) hit = true; }
+        tmp[y*w+x] = (hit === wantDark) ? 0 : 255;
+        if(!wantDark) tmp[y*w+x] = hit ? 255 : 0;
+      }
+    }
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        let hit = false;
+        for(let k=-rad;k<=rad && !hit;k++){ const yy = y+k; if(yy>=0 && yy<h && (tmp[yy*w+x] === 0) === wantDark) hit = true; }
+        out[y*w+x] = wantDark ? (hit ? 0 : 255) : (hit ? 255 : 0);
+      }
+    }
+    return out;
+  };
+
+  // Remove big dark blobs touching the edge (the plate frame / background); characters are small.
+  const seen = new Uint8Array(n);
+  const stack = [];
+  const trySeed = (p)=>{
+    if(bw[p] !== 0 || seen[p]) return;
+    const comp = [p]; seen[p] = 1; stack.length = 0; stack.push(p);
+    while(stack.length){
+      const q = stack.pop();
+      const x = q % w, y = (q / w) | 0;
+      const nb = [];
+      if(x>0) nb.push(q-1); if(x<w-1) nb.push(q+1); if(y>0) nb.push(q-w); if(y<h-1) nb.push(q+w);
+      for(const m of nb){ if(bw[m] === 0 && !seen[m]){ seen[m] = 1; comp.push(m); stack.push(m); } }
+    }
+    if(comp.length > n*0.02) for(const m of comp) bw[m] = 255;
+  };
+  for(let x=0;x<w;x++){ trySeed(x); trySeed((h-1)*w+x); }
+  for(let y=0;y<h;y++){ trySeed(y*w); trySeed(y*w+w-1); }
+
+  const mk = (cw, ch, fn)=>{
+    const cv = document.createElement("canvas"); cv.width = cw; cv.height = ch;
+    const cx = cv.getContext("2d"); const o = cx.createImageData(cw, ch);
+    for(let y=0;y<ch;y++) for(let x=0;x<cw;x++){
+      const v = fn(x,y); const k = (y*cw+x)*4;
+      o.data[k]=o.data[k+1]=o.data[k+2]=v; o.data[k+3]=255;
+    }
+    cx.putImageData(o, 0, 0); return cv;
+  };
+
+  let fres = filterCharacters(bw, w, h);
+  if(fres){
+    // opening (erode then dilate the dark pixels) cuts thin bridges, e.g. a hologram touching a letter
+    const rad = Math.max(1, Math.round(fres.charH/30));
+    const opened = morph(morph(bw, false, rad), true, rad);
+    const f2 = filterCharacters(opened, w, h);
+    if(f2 && f2.count > fres.count){
+      // use the cut to decide WHICH blobs are characters, but keep their original, undamaged pixels
+      const m2 = new Uint8Array(n).fill(255);
+      f2.boxes.forEach(b=>{
+        for(let y=b.miny; y<=b.maxy; y++) for(let x=b.minx; x<=b.maxx; x++){
+          const q = y*w + x; if(bw[q] === 0) m2[q] = 0;
+        }
+      });
+      fres = { ...f2, mask: m2 };
+    }
+  }
+  let use = bw, box = { x0:0, x1:w-1, y0:0, y1:h-1 }, bands = [];
+  if(fres){
+    use = fres.mask; box = fres.box;
+    bands = fres.groups.map(g=>[g.miny, g.maxy]);
+  } else {
+    const rowDark = new Array(h).fill(0);
+    for(let y=0;y<h;y++){ let c2 = 0; for(let x=0;x<w;x++) if(bw[y*w+x] === 0) c2++; rowDark[y] = c2; }
+    const minRow = Math.max(2, w*0.004), maxGap = Math.max(3, Math.round(h*0.02));
+    let s0 = -1, gap = 0;
+    for(let y=0;y<h;y++){
+      if(rowDark[y] > minRow){ if(s0 < 0) s0 = y; gap = 0; }
+      else if(s0 >= 0){ gap++; if(gap > maxGap){ bands.push([s0, y-gap]); s0 = -1; gap = 0; } }
+    }
+    if(s0 >= 0) bands.push([s0, h-1]);
+    const maxH = Math.max(0, ...bands.map(b=>b[1]-b[0]+1));
+    bands = bands.filter(b => (b[1]-b[0]+1) >= maxH*0.45);
+  }
+  const bh0 = box.y1 - box.y0 + 1;
+  const pad = Math.round(bh0*0.12) + 12;
+  const bx0 = Math.max(0, box.x0 - Math.round(bh0*0.05)), bx1 = Math.min(w-1, box.x1 + Math.round(bh0*0.05));
+  const by0 = Math.max(0, box.y0 - Math.round(bh0*0.05)), by1 = Math.min(h-1, box.y1 + Math.round(bh0*0.05));
+  const cw = (bx1-bx0+1) + 2*pad, chh = (by1-by0+1) + 2*pad;
+  const bwCanvas = mk(cw, chh, (x,y)=>{
+    const sx = x - pad + bx0, sy = y - pad + by0;
+    return (sx<0||sx>=w||sy<0||sy>=h) ? 255 : use[sy*w+sx];
+  });
+  const lineCanvases = bands.map(([y0,y1])=>{
+    const m = Math.round((y1-y0+1)*0.2) + 6;
+    const ly0 = Math.max(0, y0 - m), ly1 = Math.min(h-1, y1 + m);
+    const lh = (ly1-ly0+1) + 2*pad;
+    return mk(cw, lh, (x,y)=>{
+      const sx = x - pad + bx0, sy = y - pad + ly0;
+      if(sx<0 || sx>=w || sy<ly0 || sy>ly1) return 255;
+      return use[sy*w+sx];
+    });
+  });
+  return { bwCanvas, lineCanvases, filtered: !!fres };
+}
+
+// Finds up to 3 likely plate areas: bright rectangles with dark characters inside.
+function findPlateRegions(img){
+  const L = 480;
+  const s = Math.min(1, L / Math.max(img.width, img.height));
+  const w = Math.max(8, Math.round(img.width*s)), h = Math.max(8, Math.round(img.height*s));
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const ctx = c.getContext("2d");
+  ctx.drawImage(img, 0, 0, w, h);
+  const d = ctx.getImageData(0, 0, w, h).data;
+  const gray = new Uint8Array(w*h);
+  let lo = 255, hi = 0;
+  for(let i=0;i<w*h;i++){
+    const g = (0.299*d[i*4] + 0.587*d[i*4+1] + 0.114*d[i*4+2]) | 0;
+    gray[i] = g; if(g<lo) lo=g; if(g>hi) hi=g;
+  }
+  const range = Math.max(1, hi - lo);
+  const W1 = w + 1;
+  const mkI = ()=> new Int32Array(W1 * (h+1));
+  const Ib = mkI(), Id = mkI(), Ie = mkI();   // bright, dark, edge counts
+  for(let y=0;y<h;y++){
+    let rb = 0, rd = 0, re = 0;
+    for(let x=0;x<w;x++){
+      const g = (gray[y*w+x] - lo) / range;
+      if(g > 0.62) rb++;
+      if(g < 0.30) rd++;
+      if(x>0 && x<w-1 && Math.abs(gray[y*w+x+1] - gray[y*w+x-1]) / range > 0.18) re++;
+      const k = (y+1)*W1 + (x+1), up = y*W1 + (x+1);
+      Ib[k] = Ib[up] + rb; Id[k] = Id[up] + rd; Ie[k] = Ie[up] + re;
+    }
+  }
+  const sumI = (I,x,y,ww,hh)=> I[(y+hh)*W1+x+ww] - I[y*W1+x+ww] - I[(y+hh)*W1+x] + I[y*W1+x];
+  const shapes = [
+    [0.15,2.2],[0.22,2.2],[0.30,2.2],[0.38,2.2],[0.50,2.2],[0.65,2.0],[0.80,1.9],[0.92,1.9],
+    [0.15,4.5],[0.22,4.5],[0.32,4.5],[0.45,4.5],[0.60,4.5],[0.80,4.5]
+  ];
+  let cands = [];
+  shapes.forEach(([frac, aspect])=>{
+    const ww = Math.round(w*frac), hh = Math.round(ww/aspect);
+    if(ww < 24 || hh < 8 || ww > w || hh > h) return;
+    const sx = Math.max(2, Math.round(ww/10)), sy = Math.max(2, Math.round(hh/8));
+    const area = ww*hh;
+    for(let y=0; y+hh<=h; y+=sy){
+      for(let x=0; x+ww<=w; x+=sx){
+        const fb = sumI(Ib,x,y,ww,hh) / area;
+        const fd = sumI(Id,x,y,ww,hh) / area;
+        const fe = sumI(Ie,x,y,ww,hh) / area;
+        if(fb < 0.40 || fb > 0.88 || fd < 0.04 || fd > 0.40 || fe < 0.05) continue;
+        cands.push({ x, y, ww, hh, score: fb * Math.min(fd, 0.25) * Math.min(fe, 0.25) * (0.6 + ww/w) });
+      }
+    }
+  });
+  cands.sort((a,b)=> b.score - a.score);
+  const picked = [];
+  const iou = (a,b)=>{
+    const x1 = Math.max(a.x,b.x), y1 = Math.max(a.y,b.y);
+    const x2 = Math.min(a.x+a.ww,b.x+b.ww), y2 = Math.min(a.y+a.hh,b.y+b.hh);
+    const inter = Math.max(0,x2-x1) * Math.max(0,y2-y1);
+    return inter / (a.ww*a.hh + b.ww*b.hh - inter);
+  };
+  for(const cnd of cands){
+    if(picked.length >= 3) break;
+    if(picked.every(p => iou(p,cnd) < 0.25)) picked.push(cnd);
+  }
+  // grow each window outward while the strip beyond its edge is still plate-coloured (bright)
+  const strip = (x,y,ww,hh)=> (ww<=0||hh<=0) ? 0 : sumI(Ib,x,y,ww,hh) / (ww*hh);
+  picked.forEach(p=>{
+    for(let it=0; it<60; it++){
+      let moved = false;
+      if(p.x >= 2 && strip(p.x-2, p.y, 2, p.hh) >= 0.35){ p.x -= 2; p.ww += 2; moved = true; }
+      if(p.x + p.ww + 2 <= w && strip(p.x+p.ww, p.y, 2, p.hh) >= 0.35){ p.ww += 2; moved = true; }
+      if(p.y >= 2 && strip(p.x, p.y-2, p.ww, 2) >= 0.35){ p.y -= 2; p.hh += 2; moved = true; }
+      if(p.y + p.hh + 2 <= h && strip(p.x, p.y+p.hh, p.ww, 2) >= 0.35){ p.hh += 2; moved = true; }
+      if(!moved) break;
+    }
+  });
+  return picked.map(p=>{
+    const padX = p.ww*0.05, padY = p.hh*0.08;
+    const x0 = Math.max(0, p.x - padX), y0 = Math.max(0, p.y - padY);
+    const x1 = Math.min(w, p.x + p.ww + padX), y1 = Math.min(h, p.y + p.hh + padY);
+    return { sx: x0/s, sy: y0/s, sw: (x1-x0)/s, sh: (y1-y0)/s };
+  });
+}
+
+// Runs OCR over regions and votes. A plate is only trusted when several readings agree.
+async function scanRegions(img, regions, onStatus){
+  const worker = await getOcrWorker();
+  const tally = {};
+  let raw = "";
+  const total = regions.length;
+  const read = async (cv, psm)=>{
+    await worker.setParameters({ tessedit_pageseg_mode: psm });
+    const { data } = await worker.recognize(cv);
+    return data.text || "";
+  };
+  const vote = (txt, weight)=>{
+    const cand = extractPlate([txt]);
+    if(!cand) return;
+    const t = tally[cand.plate] || (tally[cand.plate] = { plate: cand.plate, weight: 0, cost: 9 });
+    t.weight += weight;
+    t.cost = Math.min(t.cost, cand.cost);
+  };
+  const best = ()=> Object.values(tally).sort((a,b)=> b.weight-a.weight || a.cost-b.cost)[0] || null;
+  const decided = ()=>{
+    const arr = Object.values(tally).sort((x,y)=> y.weight-x.weight || x.cost-y.cost);
+    return arr[0] && arr[0].weight >= 3 && arr[0].weight - (arr[1] ? arr[1].weight : 0) >= 1.5;
+  };
+  for(let ri=0; ri<total; ri++){
+    const reg = regions[ri];
+    onStatus(`Reading plate... (area ${ri+1}/${total})`);
+    const base = reg.full ? 0.5 : (reg.manual ? 2 : 1);
+    const targets = reg.full ? [null] : (ri === 0 ? [750, 1000, 1300] : [850]);
+    for(const tw of targets){
+      const scale = reg.full ? Math.min(1, 1600/Math.max(reg.sw, reg.sh)) : Math.min(4, tw/reg.sw);
+      const v = makeVariants(img, reg, scale);
+      if(reg.full){
+        vote(await read(v.bwCanvas, "6"), base);
+        continue;
+      }
+      // a region where no character-like marks were found is almost surely not a plate
+      const w0 = v.filtered ? 1 : 0.4;
+      const t2 = await read(v.bwCanvas, "6");
+      if(t2.replace(/[^A-Za-z0-9]/g,"").length >= 6 && raw.length < 6) raw = t2;
+      vote(t2, base * 1.3 * w0);
+      if(v.lineCanvases.length > 1){
+        let joined = "";
+        for(const lc of v.lineCanvases) joined += (await read(lc, "7")) + "\n";
+        vote(joined, base * w0);
+      } else if(v.lineCanvases.length === 1){
+        vote(await read(v.lineCanvases[0], "7"), base * w0);
+      }
+      if(decided()) break;
+    }
+    if(decided()) break;
+  }
+  return { top: best(), raw: raw.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,24) };
+}
+
+async function autoReadPlate(img, onStatus){
+  onStatus("Locating plate...");
+  const whole = { sx:0, sy:0, sw:img.width, sh:img.height };
+  const regs = [];
+  // close-up photo? if the whole image already shows 4-14 character-shaped marks in lines, try it first
+  try{
+    const probe = makeVariants(img, whole, Math.min(1, 640/Math.max(img.width, img.height)));
+    if(probe.filtered) regs.push({ ...whole });
+  }catch(e){ console.error(e); }
+  findPlateRegions(img).forEach(r => regs.push({ ...r }));
+  regs.push({ ...whole, full:true });
+  onStatus("Loading reader (first time needs internet)...");
+  return scanRegions(img, regs, onStatus);
+}
+
+// Full-screen box-drawing tool so the guard can mark the plate by hand.
+function openPlateCropper(img, onRegion){
+  const ov = document.createElement("div");
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(20,28,24,.95);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px;";
+  const msg = document.createElement("div");
+  msg.style.cssText = "color:#fff;font-size:.9rem;text-align:center;";
+  msg.textContent = "Drag a box tightly around the number plate";
+  const s = Math.min((Math.min(window.innerWidth, 900) - 24) / img.width, (window.innerHeight - 170) / img.height);
+  const cv = document.createElement("canvas");
+  cv.width = Math.max(10, Math.round(img.width*s)); cv.height = Math.max(10, Math.round(img.height*s));
+  cv.style.cssText = "touch-action:none;max-width:100%;border-radius:8px;";
+  const ctx = cv.getContext("2d");
+  let rect = null, start = null;
+  const draw = ()=>{
+    ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    if(rect){
+      ctx.strokeStyle = "#ffd54a"; ctx.lineWidth = 3;
+      ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    }
+    okBtn.disabled = !(rect && rect.w > 20 && rect.h > 8);
+  };
+  const pos = (e)=>{
+    const b = cv.getBoundingClientRect();
+    return { x: Math.min(cv.width, Math.max(0, (e.clientX-b.left)*cv.width/b.width)),
+             y: Math.min(cv.height, Math.max(0, (e.clientY-b.top)*cv.height/b.height)) };
+  };
+  const btns = document.createElement("div");
+  btns.style.cssText = "display:flex;gap:10px;width:100%;max-width:420px;";
+  const okBtn = document.createElement("button");
+  okBtn.className = "btn btn-primary"; okBtn.textContent = "Read this area"; okBtn.disabled = true;
+  const cancel = document.createElement("button");
+  cancel.className = "btn"; cancel.textContent = "Cancel";
+  cancel.style.cssText = "background:var(--panel);color:var(--ink);";
+  btns.appendChild(okBtn); btns.appendChild(cancel);
+  cv.addEventListener("pointerdown", e=>{ cv.setPointerCapture(e.pointerId); start = pos(e); rect = { x:start.x, y:start.y, w:0, h:0 }; draw(); });
+  cv.addEventListener("pointermove", e=>{
+    if(!start) return;
+    const p = pos(e);
+    rect = { x:Math.min(start.x,p.x), y:Math.min(start.y,p.y), w:Math.abs(p.x-start.x), h:Math.abs(p.y-start.y) };
+    draw();
+  });
+  cv.addEventListener("pointerup", ()=>{ start = null; });
+  cancel.onclick = ()=> ov.remove();
+  okBtn.onclick = ()=>{
+    const r = { sx: rect.x/s, sy: rect.y/s, sw: rect.w/s, sh: rect.h/s, manual:true };
+    ov.remove();
+    onRegion(r);
+  };
+  ov.appendChild(msg); ov.appendChild(cv); ov.appendChild(btns);
+  document.body.appendChild(ov);
+  draw();
+}
+
+function setupPlateScan(card){
+  const camBtn = card.querySelector("#plateCamBtn");
+  if(!camBtn) return;
+  const upBtn = card.querySelector("#plateUpBtn");
+  const camIn = card.querySelector("#plateCamInput");
+  const upIn = card.querySelector("#plateUpInput");
+  const status = card.querySelector("#plateStatus");
+  const vehEl = card.querySelector("#f_vehicle");
+  const setBusy = (b)=>{ camBtn.disabled = upBtn.disabled = b; };
+  camBtn.onclick = ()=> camIn.click();
+  upBtn.onclick = ()=> upIn.click();
+
+  const fill = (plate)=>{
+    vehEl.value = plate;
+    status.textContent = `Detected: ${plate} - please confirm it matches the vehicle.`;
+    toast("Vehicle number filled");
+  };
+  const showFailure = (img, res)=>{
+    status.innerHTML = "";
+    const top = res && res.top;
+    const line = document.createElement("div");
+    line.textContent = top
+      ? `Not confident. Possible plate: ${top.plate}${res.raw ? " (reader saw: " + res.raw + ")" : ""}.`
+      : `Couldn't read the plate${res && res.raw ? " (reader saw: " + res.raw + ")" : ""}.`;
+    status.appendChild(line);
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;";
+    if(top){
+      const use = document.createElement("button");
+      use.type = "button"; use.className = "mcall"; use.textContent = "Use this";
+      use.onclick = ()=> fill(top.plate);
+      row.appendChild(use);
+    }
+    const man = document.createElement("button");
+    man.type = "button"; man.className = "mcall"; man.textContent = "Select plate area";
+    man.onclick = ()=> openPlateCropper(img, async (region)=>{
+      setBusy(true);
+      try{
+        status.textContent = "Reading selected area...";
+        const r2 = await scanRegions(img, [region], m=>{ status.textContent = m; });
+        if(r2.top) fill(r2.top.plate);
+        else showFailure(img, r2);
+      }catch(err){ console.error(err); status.textContent = "Scan failed: " + (err.message||err); }
+      finally{ setBusy(false); }
+    });
+    row.appendChild(man);
+    status.appendChild(row);
+  };
+
+  const handle = async (e)=>{
+    const file = e.target.files[0];
+    e.target.value = "";
+    if(!file) return;
+    setBusy(true);
+    try{
+      status.textContent = "Preparing image...";
+      const img = await loadImageFromFile(file);
+      const res = await autoReadPlate(img, m=>{ status.textContent = m; });
+      if(res.top && res.top.weight >= 1.25) fill(res.top.plate);
+      else showFailure(img, res);
+    }catch(err){
+      console.error(err);
+      status.textContent = "Scan failed: " + (err.message || err);
+    }finally{
+      setBusy(false);
+    }
+  };
+  camIn.addEventListener("change", handle);
+  upIn.addEventListener("change", handle);
+}
+
+function emptyState(msg){
+  const d = document.createElement("div");
+  d.className = "empty";
+  d.textContent = msg;
+  return d;
+}
+
+/* live minute counters for "inside now" cards + pending wait warnings + header clock */
+const WEEKDAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+setInterval(()=>{
+  const clock = document.getElementById("liveClock");
+  if(clock){
+    const d = new Date();
+    const dateStr = `${WEEKDAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    let h = d.getHours();
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12; if(h === 0) h = 12;
+    const timeStr = `${h}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())} ${ampm}`;
+    clock.innerHTML = `<div>${dateStr}</div><div class="lc-time">${timeStr}</div>`;
+  }
+  document.querySelectorAll(".timer").forEach(t=>{
+    const entry = t.getAttribute("data-entry");
+    if(entry) t.textContent = minutesBetween(entry, nowIso());
+  });
+  document.querySelectorAll(".wait-timer").forEach(t=>{
+    const created = t.getAttribute("data-created");
+    if(!created) return;
+    const mins = minutesBetween(created, nowIso());
+    const card = t.closest(".visit-card");
+    if(mins >= 10){
+      t.textContent = `Waiting ${mins} min — no response yet`;
+      t.className = "wait-timer wait-warn";
+      if(card) card.classList.add("overdue");
+    } else {
+      t.textContent = `Waiting ${mins} min`;
+      t.className = "wait-timer wait-ok";
+      if(card) card.classList.remove("overdue");
+    }
+  });
+}, 1000);
+
+boot();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  });
+}
+
+</script>
+</body>
+</html>
